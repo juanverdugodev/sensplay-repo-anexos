@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="../assets/" data-template="vertical-menu-template-free">
+<head>
+  {% include 'public/includes/head.html' %}
+  {% block customCSS %}
+    <!-- Carga tus estilos globales primero -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/mystyle.css') }}">
+    <!-- Estilos específicos para este cpanel, aislados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cpanel.css') }}">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='libs/sweetalert2/sweetalert2.min.css') }}">
+
+    <style>
+      /* Bloque CSS específico para esta página, aislado para no romper estilos globales */
+
+      /* Evitar overflow horizontal y márgenes/paddings en body y html */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+
+      /* Ajustar el contenedor principal para que use el espacio sin centrar completo */
+      .content-wrapper {
+        flex-grow: 1;
+      }
+      .container-xxl {
+        flex-grow: 1;
+        padding-top: 10vh;
+      }
+
+      /* Tarjeta encapsulada azul semi-transparente */
+      .encapsulado-ovalo {
+        background-color: rgba(127, 192, 230, 0.8);
+        border-radius: 15px;
+        padding: 20px 25px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        max-width: 800px;
+        margin: 30px auto;
+        text-align: center;
+      }
+      .encapsulado-ovalo-title {
+        color: #ffffff;
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      .encapsulado-ovalo .form-label {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-align: center;
+      }
+      .encapsulado-ovalo .form-control {
+        width: 100%;
+        height: 50px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+        text-align: center;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .encapsulado-ovalo .form-control::placeholder {
+        font-size: 0.85rem;
+        text-align: center;
+      }
+      .encapsulado-item {
+        margin-bottom: 15px;
+      }
+      .btn-buscar {
+        width: 100%;
+        height: 50px;
+        font-size: 0.95rem;
+        border-radius: 10px;
+        padding: 0 15px;
+        text-align: center;
+      }
+
+      /* Resultados de sesiones como tarjeta blanca */
+      .resultados-sesiones-box {
+        background-color: #fff;
+        border-radius: 15px;
+        padding: 20px 25px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        margin: 30px auto;
+        text-align: center;
+        display: none; /* Oculto por defecto */
+      }
+      .resultados-sesiones-box.show {
+        display: block;
+      }
+      .resultados-sesiones-box-title {
+        color: #333;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      .paciente-info-header {
+        font-size: 1.1rem;
+        color: #498bc5;
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+
+      .resultados-sesiones-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .resultados-sesiones-list li {
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        padding: 15px;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .session-details {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex-grow: 1;
+      }
+      .resultados-sesiones-list li strong {
+        color: #498bc5;
+      }
+      .resultados-sesiones-list li span {
+        display: block;
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 5px;
+      }
+      .resultados-sesiones-list li .btn-visualizar {
+        width: auto;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        margin-left: 15px;
+        flex-shrink: 0;
+      }
+
+      /* Spinner carga */
+      .loading-spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: #498bc5;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        display: none;
+        margin: 0 auto;
+      }
+      .loading-spinner.show {
+        display: block;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  {% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% include 'public/includes/pre_loader.html' %}
+  {% include 'public/includes/navbar.html' %}
+
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      {% include 'public/includes/menu_sidebar.html' %}
+      <div class="layout-page">
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+
+            {% block body %}
+              {% if dataLogin and dataLogin.rol == 1 %}
+                <div class="mb-4"><h1 style="color: white !important;">Bienvenido administrador</h1></div>
+              {% elif dataLogin and dataLogin.rol == 2 %}
+                <div class="mb-4">
+                  <h1 style="color: white !important;">Bienvenido {{ dataLogin.name }} {{ dataLogin.lastname }}</h1>
+                </div>
+              {% endif %}
+
+              <div class="encapsulado-ovalo">
+                <div class="encapsulado-ovalo-title">Análisis Terapéutico</div>
+                <div class="row">
+                  <div class="col-md-4 encapsulado-item">
+                    <label for="busquedaPaciente" class="form-label">Cédula del Paciente</label>
+                    <input type="text" id="busquedaPaciente" class="form-control" placeholder="Número de cédula"
+                      maxlength="10" pattern="^\d{10}$"
+                      oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,10);" required>
+                  </div>
+                  <div class="col-md-4 encapsulado-item">
+                    <label for="fechaSesion" class="form-label">Seleccionar Fecha</label>
+                    <input type="date" id="fechaSesion" class="form-control" required>
+                  </div>
+                  <div class="col-md-4 encapsulado-item">
+                    <label class="form-label" style="visibility:hidden;">.</label>
+                    <button id="generarAnalisis" class="btn btn-primary btn-buscar">Buscar</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Resultados de sesiones -->
+              <div id="resultadosSesionesBox" class="resultados-sesiones-box">
+                <div class="resultados-sesiones-box-title">Resultados de Sesiones</div>
+                <p id="pacienteInfoHeader" class="paciente-info-header" style="display: none;"></p>
+                <div class="loading-spinner" id="resultadosSpinner"></div>
+                <ul id="listaResultadosSesiones" class="resultados-sesiones-list"></ul>
+                <p id="mensajeNoResultados" style="display: none; color: #666; margin-top: 15px;"></p>
+              </div>
+            {% endblock %}
+
+          </div>
+          <div class="content-backdrop fade"></div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-overlay layout-menu-toggle"></div>
+  </div>
+
+  {% include 'public/includes/js.html' %}
+  <script src="{{ url_for('static', filename='libs/sweetalert2/sweetalert2.all.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='libs/chartjs/chart.min.js') }}"></script>
+
+  {% block customJS %}
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    Swal.mixin({
+      customClass: {
+        confirmButton: 'btn btn-swal',
+        cancelButton: 'btn btn-swal'
+      },
+      buttonsStyling: false
+    });
+
+    const generarAnalisisBtn = document.getElementById("generarAnalisis");
+    const busquedaPacienteInput = document.getElementById("busquedaPaciente");
+    const fechaSesionInput = document.getElementById("fechaSesion");
+
+    // Referencias para resultados
+    const resultadosSesionesBox = document.getElementById("resultadosSesionesBox");
+    const listaResultadosSesiones = document.getElementById("listaResultadosSesiones");
+    const resultadosSpinner = document.getElementById("resultadosSpinner");
+    const mensajeNoResultados = document.getElementById("mensajeNoResultados");
+    const pacienteInfoHeader = document.getElementById("pacienteInfoHeader");
+
+    generarAnalisisBtn.addEventListener("click", async () => {
+      if (!busquedaPacienteInput.checkValidity()) {
+        busquedaPacienteInput.reportValidity();
+        return;
+      }
+      if (!fechaSesionInput.checkValidity()) {
+        fechaSesionInput.reportValidity();
+        return;
+      }
+
+      // Reset resultados
+      resultadosSesionesBox.classList.remove('show');
+      listaResultadosSesiones.innerHTML = '';
+      mensajeNoResultados.style.display = 'none';
+      pacienteInfoHeader.style.display = 'none';
+
+      Swal.fire({
+        title: 'Buscando sesiones...',
+        html: 'Por favor, espera un momento.',
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false
+      });
+
+      try {
+        const response = await fetch(`/api/obtener_sesiones_paciente?cedula=${encodeURIComponent(busquedaPacienteInput.value)}&fecha=${fechaSesionInput.value}`);
+        Swal.close();
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.mensaje || `Error HTTP! Estado: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.registros && data.sesiones && data.sesiones.length > 0) {
+          const primeraSesion = data.sesiones[0];
+          pacienteInfoHeader.textContent = `Paciente: ${primeraSesion.paciente_nombre} ${primeraSesion.paciente_apellido}, Edad: ${primeraSesion.paciente_edad}, Género: ${primeraSesion.paciente_genero}`;
+          pacienteInfoHeader.style.display = 'block';
+
+          data.sesiones.forEach(sesion => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <div class="session-details">
+                <strong>ID Sesión: ${sesion.id_sesion}</strong><br>
+                <span>Paciente: ${sesion.paciente_nombre} ${sesion.paciente_apellido}</span><br>
+                <span>Terapeuta: ${sesion.terapeuta}</span><br>
+                <span>Fecha Inicio: ${sesion.fecha_inicio}</span><br>
+                <span>Fecha Fin: ${sesion.fecha_fin || 'N/A'}</span><br>
+                <span>Estado: ${sesion.estado}</span>
+              </div>
+              <button 
+                class="btn btn-primary btn-visualizar"
+                data-sesion-id="${sesion.id_sesion}"
+                data-fecha-inicio="${encodeURIComponent(sesion.fecha_inicio)}"
+                data-fecha-fin="${encodeURIComponent(sesion.fecha_fin || '')}"
+              >
+                Visualizar
+              </button>
+            `;
+            
+            listaResultadosSesiones.appendChild(li);
+
+            li.querySelector('.btn-visualizar').addEventListener('click', e => {
+              const btn = e.target;
+              const sesionId = btn.dataset.sesionId;
+              const fechaInicio = btn.dataset.fechaInicio;
+              const fechaFin = btn.dataset.fechaFin;
+
+              const url = `/graficas/${sesionId}?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+              window.location.href = url;
+            });
+          });
+
+          resultadosSesionesBox.classList.add('show');
+          Swal.fire('Éxito', 'Sesiones encontradas.', 'success');
+        } else {
+          Swal.fire('Sin registros', data.mensaje || "No se encontraron sesiones para esta fecha y paciente.", 'info');
+          resultadosSesionesBox.classList.remove('show');
+        }
+      } catch (error) {
+        Swal.close();
+        console.error("Error al consultar sesiones:", error);
+        Swal.fire('Error', error.message || "Error al obtener la información de las sesiones. Inténtalo de nuevo más tarde.", 'error');
+        resultadosSesionesBox.classList.remove('show');
+      }
+    });
+  });
+  </script>
+  {% endblock %}
+</body>
+</html>

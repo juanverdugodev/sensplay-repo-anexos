@@ -1,0 +1,307 @@
+{% extends 'public/base_cpanel.html' %}
+
+{% block title %}Lista de Pacientes{% endblock %}
+
+{% block body %}
+{% if (resp_pacientesBD) %}
+<div class="container-wrapper">
+  <div class="container-row">
+    <div class="card" style="border-radius: 0px !important">
+      <section id="respuestaFiltroMes">
+        <h2 class="text-center mt-5 mb-5">
+          Lista de Pacientes
+          <hr />
+        </h2>
+
+        <div class="d-flex align-items-start gap-3" style="margin-left: 50px; margin-top: -50px;">
+          <a href="/formulario-paciente" class="btn btn-personalizado" style="font-size: 16px; padding: 6px 16px;">
+            Nuevo Paciente <i class="bi bi-person-add"></i>
+          </a>
+          <a href="/sesiones-pacientes" class="btn btn-personalizado" style="font-size: 16px; padding: 6px 16px;">
+            Crear Sesión <i class="bi bi-calendar-plus ms-1"></i>
+          </a>
+        </div>
+
+        <div class="table-responsive text-nowrap">
+          <table class="table table-hover"style="margin-top: 25px;">
+            <thead>
+            <tr>
+                <th>Cédula</th>
+                <th>Nombres</th>
+                <th>Apellidos</th>
+                <th>Edad</th>
+                <th>Género</th>
+                {% if dataLogin and dataLogin.rol == 1 %}
+                <th>Acciones</th>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for paciente in resp_pacientesBD %}
+            <tr>
+                <td>
+                  <span class="copy-cedula" data-cedula="{{ paciente.cedula }}" style="cursor: pointer; position: relative;">
+                    {{ paciente.cedula }}
+                    <i class="bi bi-clipboard ms-2 copy-icon"></i>
+                    <span class="tooltip-text">Copiar</span>
+                  </span>
+                </td>
+                <td>{{ paciente.nombres }}</td>
+                <td>{{ paciente.apellidos }}</td>
+                <td>{{ paciente.edad }}</td>
+                <td>{{ paciente.tipo_genero }}</td>
+                {% if dataLogin and dataLogin.rol == 1 %}
+                <td>
+                <a href="/editar-paciente/{{ paciente.id_paciente }}"
+                    class="btn btn-personalizado btn-sm"
+                    tooltip="Actualizar Registro"
+                    data-bs-toggle="tooltip"
+                    data-bs-offset="0,4"
+                    data-bs-placement="top"
+                    data-bs-html="true"
+                    title="<span>Actualizar a {{ paciente.nombres }}</span>">
+                    <i class="bi bi-arrow-clockwise"></i> Actualizar
+                </a>
+                <a onclick="eliminarPaciente('{{ paciente.id_paciente }}', '{{ paciente.nombres }} {{ paciente.apellidos }}')"
+                    class="btn btn-danger btn-sm"
+                    data-bs-toggle="tooltip"
+                    data-bs-offset="0,4"
+                    data-bs-placement="top"
+                    data-bs-html="true"
+                    title="<span>Eliminar a {{ paciente.nombres }}</span>">
+                    <i class="bi bi-trash3"></i> Eliminar
+                </a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="container mt-3 mb-3" style="width: 100% !important">
+  <div class="row justify-content-md-center mb-2">
+    <div class="col-12">
+      <h2 class="text-center">No hay pacientes 😭</h2>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block customJS %}
+<script>
+function eliminarPaciente(id, nombreCompleto) {
+  Swal.fire({
+    title: `¿Eliminar a ${nombreCompleto}?`,
+    text: "Esta acción no se puede deshacer",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      mostrarPreloader();
+
+      fetch(`/borrar-paciente/${id}`, {
+        method: 'POST',
+      })
+      .then(response => {
+        if (!response.redirected) {
+          throw new Error("No se pudo eliminar");
+        }
+        return response.url;
+      })
+      .then(url => {
+        Swal.fire({
+          title: 'Paciente eliminado',
+          text: 'Se ha eliminado correctamente',
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 1500
+        }).then(() => {
+          window.location.href = url;
+        });
+      })
+      .catch(error => {
+        ocultarPreloader();
+        Swal.fire("Error", "No se pudo eliminar el paciente", "error");
+      });
+    }
+  });
+}
+
+function mostrarPreloader() {
+  const loader = document.createElement("div");
+  loader.id = "preloader";
+  loader.innerHTML = `
+    <div style="
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    ">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(loader);
+}
+
+function ocultarPreloader() {
+  const loader = document.getElementById("preloader");
+  if (loader) loader.remove();
+}
+
+// Copiar cédula desde toda la celda
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.copy-cedula').forEach(span => {
+    span.addEventListener('click', () => {
+      const cedula = span.getAttribute('data-cedula');
+      const icon = span.querySelector('.copy-icon');
+
+      navigator.clipboard.writeText(cedula).then(() => {
+        icon.classList.remove('bi-clipboard');
+        icon.classList.add('bi-clipboard-check');
+        icon.style.color = 'green';
+
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: '¡Cédula copiada!',
+          showConfirmButton: false,
+          timer: 1800,
+          customClass: {
+            popup: 'swal2-popup-custom'
+          }
+        });
+
+        setTimeout(() => {
+          icon.classList.remove('bi-clipboard-check');
+          icon.classList.add('bi-clipboard');
+          icon.style.color = '';
+        }, 1800);
+      }).catch(err => {
+        console.error('Error al copiar:', err);
+      });
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block customCSS %}
+<style>
+  table.table th,
+  table.table td {
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #ffffff;
+  }
+
+  table.table thead th {
+    background-color: #498bc5 !important;
+    color: #ffffff !important;
+  }
+
+  table.table tbody tr:nth-child(odd) {
+    background-color: rgba(28, 75, 141, 0.1);
+  }
+
+  table.table tbody tr:nth-child(even) {
+    background-color: rgba(28, 75, 141, 0.05);
+  }
+
+  table.table {
+    border-collapse: collapse;
+  }
+
+  .btn-personalizado {
+    background-color: #498bc5 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 5px;
+    padding: 2.45px 4px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition:
+      transform 0.2s ease-in-out,
+      background-color 0.3s ease-in-out,
+      box-shadow 0.3s ease-in-out,
+      color 0.3s ease-in-out;
+  }
+
+  .btn-personalizado:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    background-color: #7fc0e6 !important;
+    color: #1c4b8d !important;
+  }
+
+  .btn-personalizado i {
+    margin-left: 3px;
+    font-size: 1rem;
+  }
+
+  .copy-icon {
+    transition: all 0.2s ease;
+    color: #1c4b8d;
+  }
+
+  .copy-cedula:hover .copy-icon {
+    color: #7fc0e6;
+    transform: scale(1.2);
+  }
+
+  .copy-cedula {
+    position: relative;
+    display: inline-block;
+  }
+
+  .copy-cedula .tooltip-text {
+    visibility: hidden;
+    background-color: #1c4b8d;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* Mostrar encima */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    white-space: nowrap;
+  }
+
+  .copy-cedula:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .swal2-popup-custom {
+    font-size: 1.2rem !important;
+    padding: 1.5rem 2rem !important;
+  }
+</style>
+{% endblock %}
+

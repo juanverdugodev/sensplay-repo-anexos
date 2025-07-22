@@ -1,0 +1,464 @@
+{% extends 'public/base_cpanel.html' %}
+
+{% block title %}Crud - Python 🐍 | Gráficas{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+<h2 class="text-center mb-5">Toques del Balon</h2>
+
+<div class="row mb-4">
+  <div class="col-md-8 offset-md-2">
+    <div class="card bloque-transparente">
+      <div class="card-header text-center">
+        <h5>Selecciona una sesión:</h5>
+        <select id="selectorSesion" class="form-select mt-2">
+          <option value="" disabled selected>Seleccione una sesión</option>
+        </select>
+      </div>
+      <div class="card-body">
+        <canvas id="graficaToques"></canvas>
+        <p class="text-center mt-3 fw-bold" id="totalToques">Total de Toques: 0</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <h2 class="text-center mb-5">Gráfica de Áreas</h2>
+
+  <!-- Gráfica de Áreas -->
+  <div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header text-center">
+          <h5>Distribución de Personas por Área</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="graficaAreas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="text-center mb-5">Gráfica de Accesos por Fecha</h2>
+
+  <!-- Formulario para seleccionar fechas -->
+  <div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+      <form id="formFechas">
+        <div class="row">
+          <div class="col-md-5">
+            <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+            <input type="date" id="fechaInicio" class="form-control" required>
+          </div>
+          <div class="col-md-5">
+            <label for="fechaFin" class="form-label">Fecha Fin</label>
+            <input type="date" id="fechaFin" class="form-control" required>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Gráfica de Accesos -->
+  <div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header text-center">
+          <h5>Distribución de Accesos por Clave</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="graficaAccesos"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="text-center mb-5">Gráfica de Fechas de Inicio de Sesión por Usuario</h2>
+
+  <!-- Formulario para seleccionar el nombre del usuario -->
+  <div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+      <form id="formUsuario">
+        <div class="row">
+          <div class="col-md-10">
+            <label for="nombreUsuario" class="form-label">Nombre del Usuario</label>
+            <select id="nombreUsuario" class="form-select" required>
+              <option value="" disabled selected>Seleccione un usuario</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Gráfica de Fechas por Usuario -->
+  <div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header text-center">
+          <h5>Fechas de Inicio de Sesión por Usuario</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="graficaFechasUsuario"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Carga de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // Función para generar colores únicos y dinámicos
+  function generarColoresUnicos(cantidad) {
+    const colores = [];
+    for (let i = 0; i < cantidad; i++) {
+      const r = Math.floor(Math.random() * 255);
+      const g = Math.floor(Math.random() * 255);
+      const b = Math.floor(Math.random() * 255);
+      colores.push(`rgba(${r}, ${g}, ${b}, 0.5)`); // Color con transparencia
+    }
+    return colores;
+  }
+
+function cargarGraficaRoles() {
+  fetch("{{ url_for('grafica_roles_datos') }}")
+    .then(response => response.json())
+    .then(data => {
+      if (data.nombres) {
+        const ctx = document.getElementById('graficaRoles').getContext('2d');
+        const colores = generarColoresBonitos(data.nombres.length);
+
+        // Limpiar gráfica previa (si existe)
+        if (window.miGraficaRoles) {
+          window.miGraficaRoles.destroy();
+        }
+
+        window.miGraficaRoles = new Chart(ctx, {
+          type: 'doughnut', // Donut para simular 3D
+          data: {
+            labels: data.nombres,
+            datasets: [{
+              label: 'Distribución de Roles',
+              data: Array(data.nombres.length).fill(1),
+              backgroundColor: colores,
+              borderColor: 'rgba(0,0,0,0.2)',
+              borderWidth: 2,
+              hoverOffset: 10, // Efecto hover más sutil
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false, // Permite controlar tamaño con CSS
+            cutout: '40%', // Hace el centro más grande
+            plugins: {
+              legend: { position: 'bottom' },
+              title: { display: true, text: 'Distribución de Roles', font: { size: 16, weight: 'bold' } }
+            },
+            animation: {
+              animateRotate: true,
+              animateScale: true
+            }
+          },
+          plugins: [{
+            id: 'sombra3d',
+            afterDatasetDraw(chart) {
+              const ctx = chart.ctx;
+              const meta = chart.getDatasetMeta(0);
+              meta.data.forEach(slice => {
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 4;
+                ctx.shadowOffsetY = 4;
+                ctx.fill();
+                ctx.restore();
+              });
+            }
+          }]
+        });
+      }
+    })
+    .catch(error => console.error('Error al cargar los datos:', error));
+}
+
+// Función para generar colores
+function generarColoresBonitos(cantidad) {
+  const baseColores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+  return Array.from({ length: cantidad }, (_, i) => baseColores[i % baseColores.length]);
+}
+
+// Variable para definir el tipo de gráfico
+const tipoGrafico = 'line'; // Cambia aquí: 'bar', 'line', 'pie', 'doughnut', etc.
+
+function cargarGraficaAreas() {
+  fetch("{{ url_for('grafica_areas_datos') }}")
+    .then(response => response.json())
+    .then(data => {
+      if (data.nombres && data.cantidades) {
+        const canvas = document.getElementById('graficaAreas');
+        if (!canvas) {
+          console.error('No se encontró el canvas con id "graficaAreas"');
+          return;
+        }
+
+        const ctx = canvas.getContext('2d');
+
+        // .Si ya existe una gráfica previa, destruyela antes de crear una nueva
+        if (window.graficaAreasInstance) {
+          window.graficaAreasInstance.destroy();
+        }
+
+        // Generar colores o usar una paleta predeterminada
+        const colores = generarColoresUnicos(data.nombres.length);
+
+        // Definir configuración básica
+        let opcionesGrafico = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true },
+            title: { 
+              display: true, 
+              text: 'Distribución de Personas por Área',
+              font: { size: 18 }
+            }
+          },
+          animation: {
+            duration: 1000,
+            easing: 'easeOutBounce'
+          }
+        };
+
+        // Si es un gráfico de barras o líneas, agregar escalas
+        if (tipoGrafico === 'bar' || tipoGrafico === 'line') {
+          opcionesGrafico.scales = {
+            y: { 
+              beginAtZero: true,
+              ticks: { stepSize: 1 }
+            }
+          };
+        }
+
+        // Configurar el gráfico
+        window.graficaAreasInstance = new Chart(ctx, {
+          type: tipoGrafico,
+          data: {
+            labels: data.nombres,
+            datasets: [{
+              label: 'Número de Personas',
+              data: data.cantidades,
+              backgroundColor: (tipoGrafico === 'line') ? 'rgba(54, 162, 235, 0.3)' : colores,
+              borderColor: colores.map(color => color.replace('0.7', '1')),
+              borderWidth: 1,
+              borderRadius: (tipoGrafico === 'bar') ? 8 : 0, // Bordes solo en barras
+              fill: (tipoGrafico === 'line') ? true : false
+            }]
+          },
+          options: opcionesGrafico
+        });
+      }
+    })
+    .catch(error => console.error('Error al cargar los datos:', error));
+}
+
+// Definición de la función de colores
+function generarColoresUnicos(cantidad) {
+  const coloresBase = [
+    'rgba(255, 99, 132, 0.7)',
+    'rgba(54, 162, 235, 0.7)',
+    'rgba(255, 206, 86, 0.7)',
+    'rgba(75, 192, 192, 0.7)',
+    'rgba(153, 102, 255, 0.7)',
+    'rgba(255, 159, 64, 0.7)',
+    'rgba(199, 199, 199, 0.7)',
+    'rgba(255, 205, 86, 0.7)'
+  ];
+  let colores = [];
+  for (let i = 0; i < cantidad; i++) {
+    colores.push(coloresBase[i % coloresBase.length]);
+  }
+  return colores;
+}
+
+
+  // Función para llenar el select con los nombres de los usuarios
+  function cargarNombresUsuarios() {
+    fetch("{{ url_for('obtener_nombres_usuarios') }}")
+      .then(response => response.json())
+      .then(data => {
+        const select = document.getElementById('nombreUsuario');
+        if (data.nombres) {
+          data.nombres.forEach(nombre => {
+            const option = document.createElement('option');
+            option.value = nombre;
+            option.textContent = nombre;
+            select.appendChild(option);
+          });
+        }
+      })
+      .catch(error => console.error('Error al cargar los nombres de los usuarios:', error));
+  }
+
+  // Función para cargar la gráfica de fechas por usuario
+  function cargarGraficaFechasUsuario(nombreUsuario) {
+    fetch(`{{ url_for('grafica_fechas_usuario_datos') }}?nombre_usuario=${nombreUsuario}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.fechas) {
+          const ctx = document.getElementById('graficaFechasUsuario').getContext('2d');
+          const colores = generarColoresUnicos(data.fechas.length);
+
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.fechas,
+              datasets: [{
+                label: 'Fechas de Inicio de Sesión',
+                data: Array(data.fechas.length).fill(1),
+                backgroundColor: colores,
+                borderColor: colores.map(color => color.replace('0.5', '1')),
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: { display: true, text: `Fechas de Inicio de Sesión de ${nombreUsuario}` }
+              },
+              scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+              }
+            }
+          });
+        }
+      })
+      .catch(error => console.error('Error al cargar los datos:', error));
+  }
+
+  // Manejar el envío del formulario de fechas
+  document.getElementById('formFechas').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+
+    if (fechaInicio && fechaFin) {
+      cargarGraficaAccesos(fechaInicio, fechaFin);
+    }
+  });
+
+  // Manejar el envío del formulario de usuarios
+  document.getElementById('formUsuario').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const nombreUsuario = document.getElementById('nombreUsuario').value;
+
+    if (nombreUsuario) {
+      cargarGraficaFechasUsuario(nombreUsuario);
+    }
+  });
+
+  // Cargar las gráficas y nombres de usuarios al cargar la página
+  document.addEventListener('DOMContentLoaded', () => {
+    cargarGraficaRoles();
+    cargarGraficaAreas();
+    cargarNombresUsuarios();
+  }); 
+</script>
+<!-- Firebase SDK // desde aqui cambiado por adrian-->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  // Configura Firebase
+  const firebaseConfig = {
+    databaseURL: "https://sensor-ac7c1-default-rtdb.firebaseio.com/"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // Instancia de la gráfica
+  const ctx = document.getElementById('graficaToques').getContext('2d');
+const graficaToques = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Frontal superior', 'Frontal inferior'], // Nombres técnicos aquí
+    datasets: [{
+      label: 'Toques',
+      data: [0, 0],
+      backgroundColor: ['rgba(255,99,132,0.6)', 'rgba(54,162,235,0.6)'],
+      borderColor: ['#FF6384', '#36A2EB'],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { beginAtZero: true }
+    },
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Toques por Área de Impacto' }
+    }
+  }
+});
+
+  let refActual = null;
+
+  // Cargar todas las sesiones en el selector
+  db.ref("lecturas_fsr").once("value", snapshot => {
+    const selector = document.getElementById("selectorSesion");
+
+    snapshot.forEach(child => {
+      const sesionKey = child.key;
+      const option = document.createElement("option");
+      option.value = sesionKey;
+      option.text = sesionKey;
+      selector.appendChild(option);
+    });
+  });
+
+  // Cuando el usuario selecciona una sesión
+  document.getElementById("selectorSesion").addEventListener("change", function () {
+    const sesionKey = this.value;
+
+    // Si ya hay un listener anterior, eliminarlo
+    if (refActual) refActual.off();
+
+    // Nueva referencia para esta sesión
+    refActual = db.ref(`lecturas_fsr/${sesionKey}/detalle_balon`);
+
+    refActual.on("value", snapshot => {
+  const datos = snapshot.val();
+
+  if (datos) {
+    const toquesS1 = Number.isFinite(+datos.toques_S1) ? parseInt(datos.toques_S1) : 0;
+    const toquesS2 = Number.isFinite(+datos.toques_S2) ? parseInt(datos.toques_S2) : 0;
+    const total = toquesS1 + toquesS2;
+
+    graficaToques.data.datasets[0].data = [toquesS1, toquesS2];
+    graficaToques.update();
+
+    document.getElementById("totalToques").innerText = `Total de Toques (${sesionKey}): ${total}`;
+  } else {
+    // Si no hay datos, poner 0
+    graficaToques.data.datasets[0].data = [0, 0];
+    graficaToques.update();
+
+    document.getElementById("totalToques").innerText = `No hay datos para la sesión (${sesionKey})`;
+  }
+});
+
+  });
+</script>
+
+
+{% endblock %}

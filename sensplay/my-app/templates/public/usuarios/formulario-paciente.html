@@ -1,0 +1,436 @@
+{% extends 'public/base_cpanel.html' %}
+{% block title %}Registrar Paciente{% endblock %}
+
+{% block body_class %}no-bg-white{% endblock %}
+
+{% block customCSS %}
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Evita scroll vertical al cargar */
+  }
+
+  body.no-bg-white .content,
+  body.no-bg-white .container,
+  body.no-bg-white .wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 100%;
+  }
+
+  .container-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px;
+  }
+
+  .container-row {
+    width: 80%; /* más pequeño */
+    max-width: 950px; /* antes era 1100px */
+    background: white;
+    display: flex;
+    flex-direction: row;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    animation: slideInFromLeft 0.6s ease-out;
+  }
+
+  .left-form {
+    width: 45%;
+    padding: 20px 20px 20px 25px; /* menos padding */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .right-visuals {
+    width: 55%;
+    padding: 20px 25px 20px 20px; /* menos padding */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .form-field {
+    margin-bottom: 10px; /* menos espacio entre campos */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-label {
+    color: #1b2d51 !important;
+    font-weight: bold;
+    margin-bottom: 4px;
+    font-size: 13px; /* más pequeño */
+  }
+
+  input[name],
+  select[name] {
+    padding: 6px 8px; /* menos padding */
+    font-size: 13px; /* más pequeño */
+    border: 1.5px solid #498bc5;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    height: 32px; /* más compacto */
+    color: #1b2d51 !important;
+    box-sizing: border-box;
+  }
+
+  .form-instructions {
+    margin-top: 10px;
+    color: #1b2d51 !important;
+    font-size: 12px; /* más pequeño */
+  }
+
+  .form-instructions ul {
+    padding-left: 15px;
+    margin-top: 3px;
+  }
+
+  .divider {
+    width: 1.5px; /* más delgada */
+    background-color: #1c4b8d;
+  }
+
+  .header-text {
+    color: #1b2d51 !important;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 18px; /* más pequeño */
+  }
+
+  .ls-text {
+    color: #1b2d51 !important;
+    font-size: 14px;
+  }
+
+  .submit-section {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .right-visuals img {
+    width: 140px; /* antes 180px */
+    border-radius: 6px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  }
+
+  #btnGuardar {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  @media (max-width: 768px) {
+    html, body {
+      height: auto !important;
+    }
+    .container-wrapper {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 8px;
+      min-height: auto !important;
+    }
+
+    .container-row {
+      flex-direction: column;
+      width: 95%;
+      overflow: visible;
+    }
+
+    .left-form,
+    .right-visuals {
+      width: 100%;
+      padding: 15px;
+    }
+
+    .divider {
+      display: none;
+    }
+
+    .right-visuals img {
+      width: 100px;
+    }
+
+    .submit-section {
+      margin-top: 15px;
+    }
+  }
+
+  @keyframes slideInFromLeft {
+    0% {
+      transform: translateX(-40px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+</style>
+{% endblock %}
+
+
+{% block body %}
+<div class="container-wrapper">
+  <div class="container-row">
+    <!-- Izquierda: formulario -->
+    <div class="left-form">
+      <h3 class="header-text">Formulario del Paciente</h3>
+
+      <form 
+        id="formPaciente" 
+        method="POST" 
+        action="{{ url_for('router_home.guardar_paciente') }}" 
+        novalidate 
+        onsubmit="return validarFormulario();"
+      >
+        <div class="form-field">
+          <label class="form-label" for="cedula">CÉDULA</label>
+          <input 
+            id="cedula" 
+            name="cedula" 
+            type="text" 
+            pattern="^\d{10}$" 
+            inputmode="numeric" 
+            maxlength="10" 
+            minlength="10" 
+            required 
+            placeholder="Ingresar número de cédula Ecuatoriana (10 dígitos)"
+            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
+            onchange="validarCedulaEcuatoriana(this);"
+          >
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="nombres">Nombres</label>
+          <input id="nombres" name="nombres"
+            pattern="^(?! )[A-Za-zÁÉÍÓÚÑáéíóúñ]+( [A-Za-zÁÉÍÓÚÑáéíóúñ]+)*$"
+            required placeholder="Ingresar nombres completos">
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="apellidos">Apellidos</label>
+          <input id="apellidos" name="apellidos"
+            pattern="^(?! )[A-Za-zÁÉÍÓÚÑáéíóúñ]+( [A-Za-zÁÉÍÓÚÑáéíóúñ]+)*$"
+            required placeholder="Ingresar apellidos completos">
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="edad">Edad</label>
+          <input 
+            id="edad" 
+            type="number" 
+            name="edad" 
+            min="3" 
+            max="10"
+            required 
+            placeholder="Ingresar edad (3 a 10)"
+            oninput="soloNumeros(this); limitarDigitos(this, 2);"
+          >
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="id_genero">Género</label>
+          <select id="id_genero" name="id_genero" required>
+            <option value="" disabled selected hidden>-- Seleccionar --</option>
+            {% for genero in generos %}
+              <option value="{{ genero.id_genero }}">{{ genero.tipo_genero }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-instructions">
+          <strong>Instrucciones:</strong>
+          <ul>
+            <li>Llenar todos los campos</li>
+            <li>No incluir caracteres especiales</li>
+            <li>No poner espacios al inicio o al final</li>
+          </ul>
+        </div>
+      </form>
+    </div>
+
+    <!-- Línea divisoria -->
+    <div class="divider"></div>
+
+    <!-- Derecha: imágenes y botón -->
+    <div class="right-visuals">
+      <h4 class="ls-text" style="margin-top:40px; text-align:center;">
+        Trampolín y Balón
+      </h4>
+      <div style="display:flex; justify-content:center; gap:20px;
+                  margin-top:10px; margin-bottom:30px;">
+        <img src="{{ url_for('static', filename='assets/img/Trampolin.jpg') }}" alt="Trampolín" />
+        <img src="{{ url_for('static', filename='assets/img/Balon.jpg') }}" alt="Balón" />
+      </div>
+      <div class="submit-section">
+        <p class="ls-text" style="font-weight:bold;">Guardar datos del paciente</p>
+        <button id="btnGuardar" type="submit" class="btn btn-primary"
+                form="formPaciente">
+          Guardar <i class="bi bi-database-add ms-2"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function limpiarTexto(valor) {
+    return valor.trim().replace(/\s{2,}/g, ' ');
+  }
+  function validarFormulario() {
+    const form = document.getElementById('formPaciente');
+    form.cedula.value = form.cedula.value.trim();
+    form.nombres.value = limpiarTexto(form.nombres.value);
+    form.apellidos.value = limpiarTexto(form.apellidos.value);
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return false;
+    }
+    const loader = document.getElementById('loader-out');
+    if (loader) loader.style.display = 'flex';
+    return true;
+  }
+  
+</script>
+
+<!-- SweetAlert2 cargada localmente y heredada desde cpanel.html -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("formPaciente");
+  const btnGuardar = document.getElementById("btnGuardar");
+  let formularioModificado = false;
+
+  if (form) {
+    form.querySelectorAll("input, select, textarea").forEach((input) => {
+      input.addEventListener("input", () => {
+        formularioModificado = true;
+      });
+    });
+
+    form.addEventListener("submit", () => {
+      formularioModificado = false;
+    });
+  }
+
+  if (form && btnGuardar) {
+    form.addEventListener("submit", (e) => {
+      if (!form.checkValidity()) {
+        return;
+      }
+      mostrarPreloader();
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const estado = urlParams.get('estado');
+    const mensaje = urlParams.get('mensaje');
+
+    if (estado && mensaje) {
+      setTimeout(() => {
+        Swal.fire({
+          icon: estado === 'ok' ? 'success' : 'error',
+          title: estado === 'ok' ? 'Paciente guardado correctamente' : 'Error al guardar paciente',
+          text: decodeURIComponent(mensaje),
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: () => {
+            if (estado === 'ok') limpiarFormulario();
+          }
+        });
+
+        const loader = document.getElementById('preloader');
+        if (loader) loader.remove();
+      }, 500);
+    }
+  }
+
+  window.addEventListener("beforeunload", (e) => {
+    if (formularioModificado) {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }
+  });
+
+  function mostrarPreloader() {
+    const loader = document.createElement("div");
+    loader.id = "preloader";
+    loader.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      ">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(loader);
+  }
+
+  function limpiarFormulario() {
+    document.getElementById("formPaciente").reset();
+  }
+
+  // Validación básica de cédula: solo verifica que empiece con 01 a 24
+  window.validarCedulaEcuatoriana = function(input) {
+    const cedula = input.value.trim();
+    if (!/^\d{10}$/.test(cedula)) {
+      input.setCustomValidity("La cédula debe tener exactamente 10 dígitos numéricos.");
+      return false;
+    }
+
+    const provincia = parseInt(cedula.substring(0, 2), 10);
+    if (provincia < 1 || provincia > 24) {
+      input.setCustomValidity("Los dos primeros dígitos deben estar entre 01 y 24.");
+      return false;
+    }
+
+    input.setCustomValidity("");
+    return true;
+  };
+
+  // Solo números, limitar longitud, y validar edad entre 3 y 10
+  window.soloNumeros = function(input) {
+    input.value = input.value.replace(/[^0-9]/g, '');
+    validarEdad(input);
+  };
+
+  window.limitarDigitos = function(input, max) {
+    if (input.value.length > max) {
+      input.value = input.value.slice(0, max);
+    }
+  };
+
+  function validarEdad(input) {
+    const valor = parseInt(input.value, 10);
+    if (isNaN(valor) || valor < 3 || valor > 10) {
+      input.setCustomValidity("La edad debe estar entre 3 y 10 años.");
+    } else {
+      input.setCustomValidity("");
+    }
+  }
+});
+</script>
+
+{% endblock %}

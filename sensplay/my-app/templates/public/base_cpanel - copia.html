@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="../assets/" data-template="vertical-menu-template-free">
+<head>
+  {% include 'public/includes/head.html' %}
+  {% block customCSS %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/cpanel.css') }}">
+    <!-- SweetAlert2 CSS global -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='libs/sweetalert2/sweetalert2.min.css') }}">
+  {% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% include 'public/includes/pre_loader.html' %}
+  {% include 'public/includes/navbar.html' %}
+
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      {% include 'public/includes/menu_sidebar.html' %}
+      <div class="layout-page">
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+            {% include 'public/includes/messages.html' %}
+
+            {% block body %}
+            {% if dataLogin and dataLogin.rol == 1 %}
+              <div class="mb-4"><h1 style="color: white !important;">Bienvenido administrador</h1></div>
+            {% elif dataLogin and dataLogin.rol == 2 %}
+              <div class="mb-4">
+                <h1 style="color: white !important;">Bienvenido {{ dataLogin.name }} {{ dataLogin.lastname }}</h1>
+              </div>
+            {% endif %}
+
+            <!-- Búsqueda por nombre de paciente -->
+            <div class="mb-4">
+              <label for="busquedaPaciente" class="form-label fw-bold">Nombre del Paciente</label>
+              <input type="text" id="busquedaPaciente" class="form-control" list="listaPacientes" placeholder="Ejemplo: Juan">
+              <datalist id="listaPacientes"></datalist>
+            </div>
+
+            <!-- Sesiones del paciente -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card bloque-transparente black-text-theme mb-4">
+                  <div class="card-header text-center fw-bold">Sesiones</div>
+                  <div class="card-body" id="infoPaciente">
+                    <!-- Sesiones se cargarán aquí -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gráfico Toques -->
+            <div class="row">
+              <div class="col-md-8 offset-md-2">
+                <div class="card bloque-transparente black-text-theme">
+                  <div class="card-header text-center">
+                    <h5>Toques en Balón</h5>
+                    <select id="selectorSensorToques" class="form-select mt-2 mb-2">
+                      <option value="TODOS">Todos</option>
+                      <option value="S1">Frontal superior</option>
+                      <option value="S2">Frontal inferior</option>
+                      <option value="S3">Izquierda</option>
+                      <option value="S4">Derecha</option>
+                      <option value="S5">Inferior</option>
+                      <option value="S6" selected>Posterior</option>
+                    </select>
+
+                    <h6>Selecciona una sesión</h6>
+                    <select id="selectorSesionToques" class="form-select mt-2">
+                      <option value="" disabled selected>Seleccione una sesión</option>
+                    </select>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="graficaSensorUnico"></canvas>
+                    <p class="text-center mt-3 fw-bold" id="valorSensorUnico">Toques detectados: 0</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gráfico Saltos -->
+            <div class="row mt-5">
+              <div class="col-md-8 offset-md-2">
+                <div class="card bloque-transparente black-text-theme">
+                  <div class="card-header text-center">
+                    <h5>Saltos del Trampolín</h5>
+                    <select id="selectorSesionSaltos" class="form-select mt-2">
+                      <option value="" disabled selected>Seleccione una sesión</option>
+                    </select>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="graficaSaltos"></canvas>
+                    <p class="text-center mt-3 fw-bold" id="totalSaltos">Total de Saltos: 0</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endblock %}
+          </div>
+          <div class="content-backdrop fade"></div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-overlay layout-menu-toggle"></div>
+  </div>
+
+  {% include 'public/includes/js.html' %}
+  <!-- SweetAlert2 JS global -->
+  <script src="{{ url_for('static', filename='libs/sweetalert2/sweetalert2.all.min.js') }}"></script>
+{% block customJS %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const sensores = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
+  let sensorActual = "S6";
+
+  // Gráfica de Toques en Balón
+  const graficaSensorUnico = new Chart(document.getElementById('graficaSensorUnico').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Sensor'],
+      datasets: [{
+        label: 'Cantidad de Toques',
+        data: [0],
+        backgroundColor: '#36A2EB'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  // Gráfica de Saltos del Trampolín
+  const graficaSaltos = new Chart(document.getElementById('graficaSaltos').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Total de Saltos'],
+      datasets: [{
+        label: 'Saltos',
+        data: [0],
+        backgroundColor: '#FFCE56'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Función para cargar datos SOLO para la gráfica de BALÓN
+  function cargarDatosBalon(sesionId) {
+    fetch(`/api/sesion_detalle/${sesionId}`)
+      .then(res => res.json())
+      .then(data => {
+        const conteos = Array(6).fill(0);
+
+        if (sensorActual === "TODOS") {
+          data.balon.forEach(e => {
+            const idx = sensores.indexOf(e.sensor);
+            if (idx !== -1) conteos[idx] = e.cantidad;
+          });
+          graficaSensorUnico.data.labels = sensores;
+          graficaSensorUnico.data.datasets[0].data = conteos;
+          document.getElementById("valorSensorUnico").innerText =
+            `Total toques: ${conteos.reduce((a, b) => a + b, 0)}`;
+        } else {
+          const sensorData = data.balon.find(e => e.sensor === sensorActual);
+          graficaSensorUnico.data.labels = [sensorActual];
+          graficaSensorUnico.data.datasets[0].data = [sensorData ? sensorData.cantidad : 0];
+          document.getElementById("valorSensorUnico").innerText =
+            `Toques detectados (${sensorActual}): ${sensorData ? sensorData.cantidad : 0}`;
+        }
+
+        graficaSensorUnico.update();
+      });
+  }
+
+  // Función para cargar datos SOLO para la gráfica de TRAMPOLÍN
+  function cargarDatosTrampolin(sesionId) {
+    fetch(`/api/sesion_detalle/${sesionId}`)
+      .then(res => res.json())
+      .then(data => {
+        const saltos = parseInt(data.trampolin.total_saltos || 0);
+        graficaSaltos.data.datasets[0].data = [saltos];
+        graficaSaltos.update();
+        document.getElementById("totalSaltos").innerText = `Total de Saltos (${sesionId}): ${saltos}`;
+      });
+  }
+
+  // Cargar lista de pacientes en el datalist
+  fetch('/api/pacientes')
+    .then(res => res.json())
+    .then(pacientes => {
+      const lista = document.getElementById('listaPacientes');
+      pacientes.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.nombre_completo || `${p.nombre} ${p.apellido}` || "Paciente desconocido";
+        lista.appendChild(option);
+      });
+    });
+
+  // Buscar sesiones por nombre de paciente
+  document.getElementById("busquedaPaciente").addEventListener("input", function () {
+    const nombre = this.value.trim();
+    const selToques = document.getElementById("selectorSesionToques");
+    const selSaltos = document.getElementById("selectorSesionSaltos");
+    const infoDiv = document.getElementById("infoPaciente");
+
+    selToques.innerHTML = '<option value="" disabled selected>Seleccione una sesión</option>';
+    selSaltos.innerHTML = '<option value="" disabled selected>Seleccione una sesión</option>';
+    infoDiv.innerHTML = "";
+
+    if (nombre.length < 2) return;
+
+    fetch(`/api/sesiones_paciente?nombre=${encodeURIComponent(nombre)}`)
+      .then(res => res.json())
+      .then(data => {
+        data.forEach(sesion => {
+          const optText = `Sesión ${sesion.sesion_id} (${sesion.fecha_inicio})`;
+          const opt = new Option(optText, sesion.sesion_id);
+          selToques.appendChild(opt.cloneNode(true));
+          selSaltos.appendChild(opt.cloneNode(true));
+
+          infoDiv.innerHTML += `
+            <div class="alert alert-info mt-2">
+              <strong>Sesión:</strong> ${sesion.sesion_id}<br>
+              <strong>Inicio:</strong> ${sesion.fecha_inicio}<br>
+              <strong>Terapeuta:</strong> ${sesion.terapeuta}<br>
+              <strong>Estado:</strong> ${sesion.estado}
+            </div>`;
+        });
+      });
+  });
+
+  // Evento para cambiar sensor en Balón
+  document.getElementById("selectorSensorToques").addEventListener("change", function () {
+    sensorActual = this.value;
+    const sel = document.getElementById("selectorSesionToques");
+    if (sel.value) cargarDatosBalon(sel.value);
+  });
+
+  // Evento para cambiar sesión en Balón
+  document.getElementById("selectorSesionToques").addEventListener("change", function () {
+    cargarDatosBalon(this.value);
+  });
+
+  // Evento para cambiar sesión en Trampolín
+  document.getElementById("selectorSesionSaltos").addEventListener("change", function () {
+    cargarDatosTrampolin(this.value);
+  });
+});
+</script>
+
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,606 @@
+{% extends 'public/base_cpanel.html' %}
+{% block title %}Sesiones - Buscar Paciente{% endblock %}
+{% block body_class %}no-bg-white{% endblock %}
+
+{% block customCSS %}
+<style>
+  html, body { height: 100%; margin: 0; padding: 0; overflow-y: auto; }
+  body.no-bg-white .content,
+  body.no-bg-white .container,
+  body.no-bg-white .wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 100%;
+  }
+  .container-wrapper { width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 20px; }
+  .container-row { width: 90%; max-width: 1100px; background: white; display: flex; flex-direction: row; border-radius: 12px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.1); animation: slideInFromLeft 0.8s ease-out; }
+  .left-form { width: 45%; padding: 30px 30px 30px 40px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-start; position: relative; margin-top: 50px; }
+  .right-visuals { width: 55%; padding: 30px 40px 30px 30px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+  .form-label { color: #1b2d51 !important; font-weight: bold; margin-bottom: 6px; font-size: 14px; }
+  .input-icon-wrapper { position: relative; width: 100%; display: flex; align-items: center; gap: 8px; }
+  .input-icon-wrapper input { padding-left: 30px; }
+  .input-icon-wrapper .icon-search { position: absolute; top: 50%; left: 8px; transform: translateY(-50%); color: #498bc5; font-size: 16px; pointer-events: none; }
+  input { padding: 8px 10px; font-size: 14px; border: 2px solid #498bc5; border-radius: 6px; transition: all 0.3s ease; height: 36px; color: #1b2d51 !important; box-sizing: border-box; width: 100%; }
+  input:focus { border-color: #1b2d51; outline: none; }
+  input:focus:invalid { border-color: red !important; }
+  .header-text { color: #1b2d51 !important; text-align: center; margin-bottom: 20px; font-weight: 600; }
+  .ls-text { color: #1b2d51 !important; }
+  .submit-section { margin-top: 30px; text-align: center; display: flex; gap: 10px; justify-content: center; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; transition: background-color 0.3s ease, color 0.3s ease; user-select: none; min-width: 120px; }
+  .btn-primary { background-color: #498bc5; color: white; }
+  .btn-primary:disabled { background-color: #9dbddf; cursor: not-allowed; }
+  .btn-primary:hover:not(:disabled) { background-color: #1b2d51; }
+  .btn-danger { background-color: #d9534f; color: white; }
+  .btn-danger:hover { background-color: #a94442; }
+  .right-visuals img { width: 180px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+  @media (max-width: 768px) {
+    html, body { height: auto !important; }
+    .container-wrapper { flex-direction: column; align-items: flex-start; padding: 10px; }
+    .container-row { flex-direction: column; width: 100%; overflow: visible; }
+    .left-form, .right-visuals { width: 100%; padding: 20px; }
+    .divider { display: none; }
+    .right-visuals img { width: 100px; }
+    .submit-section { margin-top: 20px; }
+  }
+  @keyframes slideInFromLeft { 0% { transform: translateX(-50px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+  @keyframes slideUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
+  @keyframes slideDown { 0% { transform: translateY(-20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+
+  /* Estilos para el contador */
+  .countdown-container {
+    margin-top: 60px; /* Ajusta según sea necesario para la separación */
+    text-align: center;
+    font-size: 4.5em; /* Tamaño grande para el contador */
+    font-weight: bold;
+    color: #498bc5; /* Color de los números */
+    display: none; /* Inicialmente oculto */
+    opacity: 0; /* Para la animación de entrada */
+    transition: opacity 0.5s ease-out; /* Transición suave para aparecer/desaparecer */
+  }
+
+  .countdown-container.show {
+    opacity: 1; /* Muestra el contador */
+  }
+
+    /* Nuevo estilo para el contenedor del label y el indicador */
+  .label-indicator-wrapper {
+    display: flex; /* Permite que los elementos internos se coloquen en una fila */
+    align-items: center; /* Centra verticalmente los elementos en la fila */
+    gap: 8px; /* Espacio entre el label y el indicador */
+    margin-bottom: 6px; /* Para mantener el mismo margen que tenía el label solo */
+  }
+
+  /* Ajustar el margen del label si ya no tiene margin-bottom */
+  .form-label {
+    color: #1b2d51 !important;
+    font-weight: bold;
+    /* margin-bottom: 6px; <-- ELIMINAR ESTA LÍNEA O ESTABLECER A 0 */
+    margin-bottom: 0px; /* Asegurarse de que no haya un margen inferior que lo empuje */
+    font-size: 14px;
+  }
+
+    /* Estilos para el indicador de sesión iniciada */
+  .session-indicator {
+    display: inline-block; /* Para que esté al lado del texto */
+    width: 30px; /* Ancho del rectángulo */
+    height: 15px; /* Alto del rectángulo */
+    background-color: #32CD32; /* Verde lima intenso */
+    border-radius: 8px; /* Para que sea circular, cámbialo a un valor más pequeño como 5px para redondeado */
+    top: -3.2px;
+    position: relative;
+    margin-left: 4px; /* Espacio entre el texto y el indicador */
+    vertical-align: middle; /* Para alinear con el texto */
+    opacity: 0; /* Inicialmente oculto para la animación */
+    transform: translateY(20px); /* Posición inicial para la animación de subida */
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Animación suave */
+  }
+
+  .session-indicator.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Animación para el contador (opcional, puedes usar la transición de opacity) */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(20px); }
+  }
+
+  .countdown-container.fade-in {
+    animation: fadeIn 0.5s forwards;
+  }
+
+  .countdown-container.fade-out {
+    animation: fadeOut 0.5s forwards;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-wrapper">
+  <div class="container-row">
+
+    <!-- Izquierda: búsqueda -->
+    <div class="left-form">
+      <h3 class="header-text" id="tituloSesion">Empezar sesión de terapia</h3>
+      <form id="formBuscar">
+        <div class="label-indicator-wrapper">
+          <label id="labelBuscar" class="form-label" for="buscarPaciente">Buscar paciente por cédula</label>
+          <span id="sessionIndicator" class="session-indicator"></span>
+        </div>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-search icon-search"></i>
+          <input
+            type="text"
+            id="buscarPaciente"
+            maxlength="10"
+            placeholder="Ingresar cédula"
+            required
+          />
+          <button id="btnBuscar" type="submit" class="btn btn-primary">Buscar</button>
+          <button id="btnLimpiar" type="button" class="btn btn-danger" style="display: none;">Limpiar</button>
+        </div>
+      </form>
+
+      <!-- Datos del paciente -->
+      <div id="datosPaciente" style="display:none; margin-top:12px; font-size:16px; color:#1b2d51;">
+        <strong>Paciente:</strong> <span id="dp-nombres"></span><br>
+        <strong>Edad:</strong> <span id="dp-edad"></span><br>
+        <strong>Género:</strong> <span id="dp-genero"></span>
+      </div>
+      <div id="sessionCounter" class="countdown-container">
+        <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
+      </div>
+    </div>
+
+    <!-- Línea divisoria -->
+    <div class="divider"></div>
+
+    <!-- Derecha: imágenes y botones -->
+    <div class="right-visuals">
+      <h4 class="ls-text" style="margin-top:40px; text-align:center;">Trampolín y Balón</h4>
+      <div style="display:flex; justify-content:center; gap:20px; margin:10px 0 30px;">
+        <img src="{{ url_for('static', filename='assets/img/Trampolin.jpg') }}" alt="Trampolín">
+        <img src="{{ url_for('static', filename='assets/img/Balon.jpg') }}" alt="Balón">
+      </div>
+      <div class="submit-section">
+        <button id="btnIniciar" type="button" class="btn btn-primary" disabled>
+          Iniciar <i class="bi bi-play-fill"></i>
+        </button>
+        <button id="btnDetener" type="button" class="btn btn-danger" style="display:none;">
+          Detener <i class="bi bi-stop-fill"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block customJS %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form                   = document.getElementById("formBuscar");
+    const input                  = document.getElementById("buscarPaciente");
+    const dp                     = document.getElementById("datosPaciente");
+    const dpN                    = document.getElementById("dp-nombres");
+    const dpE                    = document.getElementById("dp-edad");
+    const dpG                    = document.getElementById("dp-genero");
+    const btnIni                 = document.getElementById("btnIniciar");
+    const btnDet                 = document.getElementById("btnDetener");
+    const btnBuscar              = document.getElementById("btnBuscar");
+    const btnLimpiar             = document.getElementById("btnLimpiar");
+    const labelBuscar            = document.getElementById("labelBuscar");
+    const tituloSesion           = document.getElementById("tituloSesion");
+    const sessionCounter         = document.getElementById("sessionCounter");
+    const hoursSpan              = document.getElementById("hours");
+    const minutesSpan            = document.getElementById("minutes");
+    const secondsSpan            = document.getElementById("seconds");
+    const sessionIndicator       = document.getElementById("sessionIndicator");
+
+    let datosCargados = false;
+    let sesionOn      = false; // Esta bandera ahora reflejará el estado persistido en localStorage
+    let pacienteActual = null;
+
+    let timerInterval;
+    let totalSeconds = 0;
+
+    // --- FUNCIÓN PARA LIMPIAR SESIÓN EN FIREBASE AL SALIR/CERRAR PESTAÑA/NAVEGADOR ---
+    // Esta función se activará por el evento beforeunload y solo envía la señal si la sesión está activa
+    const endFirebaseSessionOnUnload = () => {
+        // Solo enviar la señal si la sesión está activa en el cliente
+        if (sesionOn && pacienteActual) { 
+            console.log("Detectado intento de salida o cierre de PESTAÑA/NAVEGADOR. Enviando señal de sesión inactiva a Firebase...");
+            fetch("{{ url_for('router_home.api_update_firebase_session') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ estado_sesion: 'inactivo', paciente: null }), // Siempre null al finalizar por unload
+                keepalive: true // Crucial para que la solicitud se envíe al cerrar la página
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('[beforeunload] Error al enviar señal de inactivo a Firebase:', response.statusText);
+                } else {
+                    console.log('[beforeunload] Señal de inactivo enviada a Firebase correctamente.');
+                }
+            })
+            .catch(error => {
+                console.error('[beforeunload] Error de red al enviar señal de inactivo a Firebase:', error);
+            });
+            // Limpiar localStorage inmediatamente para reflejar el intento de cierre
+            localStorage.removeItem('sensplay_session_active');
+            localStorage.removeItem('sensplay_active_patient_data');
+            sesionOn = false; // Actualizar el estado local
+        }
+    };
+
+    // --- MANEJADOR DEL EVENTO BEFOREUNLOAD ---
+    // COMENTADO: Ya no se muestra una alerta persistente al navegar internamente.
+    // Solo si la sesión está activa, esta función intentará enviar la señal de inactivo
+    // antes de que la página se cierre o se abandone por completo (no navegación interna).
+    window.addEventListener('beforeunload', function(e) {
+        if (sesionOn) { // Solo si la sesión está activa, se intenta la limpieza al cerrar pestaña/navegador.
+            // Comentado: No se previene el evento para NO mostrar el mensaje del navegador
+            // si solo se navega a otra parte de la interfaz.
+            // Si quieres que el navegador muestre su alerta genérica al cerrar la PESTAÑA/NAVEGADOR,
+            // descomenta las siguientes 2 líneas. No se puede personalizar el mensaje.
+            // e.preventDefault(); 
+            // e.returnValue = ''; 
+
+            // Esta función intentará enviar el estado de inactivo a Firebase
+            // SI Y SOLO SI la sesión está activa y la página se va a descargar completamente (cerrar pestaña/navegador)
+            endFirebaseSessionOnUnload(); 
+        }
+    });
+
+    // Función para resetear el estado de la interfaz
+    const resetUI = () => {
+        sesionOn = false; // Resetear la bandera local
+        localStorage.removeItem('sensplay_session_active'); // Limpiar localStorage
+        localStorage.removeItem('sensplay_active_patient_data'); // Limpiar datos del paciente de localStorage
+
+        datosCargados = false;
+        input.value = '';
+        input.disabled = false;
+        dp.style.display = 'none';
+        btnIni.style.display = 'inline-flex';
+        btnIni.disabled = true;
+        btnDet.style.display = 'none';
+        btnLimpiar.style.display = 'none';
+        btnBuscar.style.display = 'inline-flex';
+        labelBuscar.textContent = 'Buscar paciente por cédula';
+        tituloSesion.style.display = 'block';
+        tituloSesion.style.animation = 'slideDown 0.5s forwards';
+
+        sessionCounter.classList.remove('fade-in');
+        sessionCounter.classList.add('fade-out');
+        setTimeout(() => {
+            sessionCounter.style.display = 'none';
+            sessionCounter.classList.remove('fade-out');
+            totalSeconds = 0;
+            hoursSpan.textContent = '00';
+            minutesSpan.textContent = '00';
+            secondsSpan.textContent = '00';
+        }, 500);
+        sessionIndicator.classList.remove('show');
+
+        pacienteActual = null;
+        stopCounter(); // Asegurarse de detener el contador
+    };
+
+    const updateCounter = () => {
+        totalSeconds++;
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds - (hours * 3600)) / 60);
+        let seconds = totalSeconds - (hours * 3600) - (minutes * 60);
+
+        hoursSpan.textContent = String(hours).padStart(2, '0');
+        minutesSpan.textContent = String(minutes).padStart(2, '0');
+        secondsSpan.textContent = String(seconds).padStart(2, '0');
+    };
+
+    const startCounter = () => {
+        totalSeconds = parseInt(localStorage.getItem('sensplay_session_duration') || '0', 10); // Cargar duración si existe
+        updateCounter();
+        sessionCounter.style.display = 'block';
+        sessionCounter.classList.add('fade-in');
+        timerInterval = setInterval(() => {
+            updateCounter();
+            localStorage.setItem('sensplay_session_duration', totalSeconds); // Guardar duración cada segundo
+        }, 1000);
+    };
+
+    const stopCounter = () => {
+        clearInterval(timerInterval);
+        localStorage.removeItem('sensplay_session_duration'); // Limpiar duración al detener
+    };
+
+    // FUNCIÓN PRINCIPAL: Enviar estado de sesión y datos a Firebase
+    const sendSessionStateToFirebase = async (estado, pacienteData, showLoadingSwal = true) => {
+        try {
+            if (showLoadingSwal) {
+                Swal.fire({
+                    title: 'Sincronizando la base de datos...',
+                    text: 'Por favor, espera mientras establecemos la conexión con Firebase.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    timer: 10000,
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
+
+            const response = await fetch('{{ url_for("router_home.api_update_firebase_session") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    estado_sesion: estado,
+                    paciente: pacienteData
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error desconocido al sincronizar con Firebase.');
+            }
+
+            if (showLoadingSwal && Swal.isVisible()) {
+                Swal.close();
+            }
+            console.log(`%c[Firebase] Éxito al enviar estado: ${estado}.`, 'color: green;'); 
+
+        } catch (error) {
+            console.error(`%c[Firebase] Error al sincronizar con Firebase para estado ${estado}:`, 'color: red;', error); 
+            let errorMessage = 'No se pudo establecer una conexión con Firebase.';
+            if (showLoadingSwal && (!Swal.isVisible() || Swal.getTitle().textContent === 'Sincronizando la base de datos...')) {
+                Swal.fire({
+                    title: '¡Error de conexión!',
+                    text: errorMessage + '\n\nContacta con soporte para revisar la aplicación.',
+                    icon: 'error',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                });
+            }
+            throw error; 
+        }
+    };
+
+    // --- Event Listeners y Lógica de la Interfaz ---
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const ced = input.value.trim();
+
+        if (!/^\d{10}$/.test(ced)) {
+            return Swal.fire({ title: 'Cédula inválida', text: 'Debe tener exactamente 10 dígitos numéricos.', icon: 'error', confirmButtonColor: '#498bc5' });
+        }
+
+        Swal.fire({ title: 'Buscando paciente…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            const resp = await fetch('{{ url_for("router_home.api_buscar_paciente") }}', {
+                method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ cedula: ced })
+            });
+            Swal.close();
+
+            if (resp.status === 404) {
+                return Swal.fire({ title: 'Paciente no encontrado', text: 'No existe ningún paciente con esa cédula.', icon: 'warning', timer: 2500, timerProgressBar: true });
+            }
+            if (!resp.ok) {
+                const errorData = await resp.json();
+                throw new Error(errorData.error || 'Error desconocido en el servidor al buscar paciente.');
+            }
+
+            const data = await resp.json();
+            dpN.textContent = `${data.nombres} ${data.apellidos}`;
+            dpE.textContent = data.edad;
+            dpG.textContent = data.genero;
+            dp.style.display = 'block';
+
+            input.disabled  = true;
+            btnIni.disabled = false;
+            btnBuscar.style.display = 'none';
+            btnLimpiar.style.display = 'inline-flex';
+            datosCargados   = true;
+
+            pacienteActual = {
+                id: data.id,
+                cedula: data.cedula,
+                nombres: data.nombres,
+                apellidos: data.apellidos,
+                edad: data.edad,
+                genero: data.genero
+            };
+
+        } catch (err) {
+            console.error('Error al buscar paciente:', err);
+            Swal.fire({ title: '¡Ups! Algo falló', text: err.message || 'Intenta de nuevo más tarde.', icon: 'error', confirmButtonColor: '#d33' });
+        }
+    });
+
+    btnLimpiar.addEventListener("click", () => {
+        Swal.fire({
+            title: '¿Limpiar los datos del paciente?',
+            text: 'Esto reiniciará la búsqueda y los campos mostrados.',
+            icon: 'warning', showCancelButton: true,
+            confirmButtonText: 'Sí, limpiar', cancelButtonText: 'Cancelar', confirmButtonColor: '#d33', cancelButtonColor: '#498bc5'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                // Si la sesión estaba activa y se limpia la UI, también hay que detener la sesión en Firebase.
+                if (sesionOn) {
+                    try {
+                        await sendSessionStateToFirebase("inactivo", null);
+                    } catch (error) {
+                        console.error("Error al limpiar UI y detener sesión en Firebase:", error);
+                        Swal.fire({ title: 'Error', text: 'No se pudo finalizar la sesión en Firebase.', icon: 'error' });
+                    }
+                }
+                resetUI();
+            }
+        });
+    });
+
+    btnIni.addEventListener("click", async () => {
+        if (pacienteActual) {
+            try {
+                await sendSessionStateToFirebase("activo", pacienteActual); // Enviar estado activo a Firebase
+                
+                sesionOn = true; // Actualizar la bandera local después de éxito en Firebase
+                localStorage.setItem('sensplay_session_active', 'true'); // Persistir estado activo
+                localStorage.setItem('sensplay_active_patient_data', JSON.stringify(pacienteActual)); // Persistir datos del paciente
+
+                input.disabled = true;
+                btnIni.style.display = 'none';
+                btnDet.style.display = 'inline-flex';
+                btnBuscar.style.display = 'none';
+                btnLimpiar.style.display = 'none';
+
+                tituloSesion.style.animation = 'slideUp 0.5s forwards';
+                setTimeout(() => {
+                    tituloSesion.style.display = 'none';
+                    labelBuscar.textContent = "Sesión iniciada";
+                    sessionIndicator.classList.add('show');
+                }, 500);
+
+                startCounter(); // Iniciar contador de tiempo (que ahora persiste)
+
+                // SweetAlert de aviso visible por 10 segundos
+                Swal.fire({
+                    title: '¡SESIÓN INICIADA Y ACTIVA!',
+                    html: '<b>ATENCIÓN:</b> Si cierras esta ventana o cambias a otra dirección web, la sesión actual del paciente se <b>finalizará automáticamente</b>.<br><br>Permanece en esta página para que la sesión continúe.',
+                    icon: 'info',
+                    showConfirmButton: false,
+                    timer: 10000, // Duración de 10 segundos
+                    timerProgressBar: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    customClass: {
+                        popup: 'swal2-responsive'
+                    }
+                });
+            } catch (error) {
+                console.error("Error al iniciar sesión y actualizar Firebase:", error);
+                // Si falla Firebase, revertir UI a estado anterior a "iniciado"
+                stopCounter();
+                resetUI(); 
+                Swal.fire({
+                    title: 'Error al iniciar sesión',
+                    text: 'Hubo un problema al comunicar el estado con Firebase. Inténtalo de nuevo.',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        } else {
+            console.warn("No hay datos de paciente para iniciar sesión en Firebase.");
+        }
+    });
+
+    btnDet.addEventListener("click", () => {
+        Swal.fire({
+            title: '¿Estás seguro de detener la sesión?',
+            icon: 'warning', showCancelButton: true,
+            confirmButtonText: 'Sí, detener', cancelButtonText: 'No', reverseButtons: true,
+            confirmButtonColor: '#498bc5', cancelButtonColor: '#d33'
+        }).then(async (r) => {
+            if (r.isConfirmed) {
+                stopCounter(); // Detener el contador
+                try {
+                    await sendSessionStateToFirebase("inactivo", null); // Enviar estado inactivo a Firebase
+                    
+                    sesionOn = false; // Actualizar la bandera local después de éxito en Firebase
+                    localStorage.removeItem('sensplay_session_active'); // Limpiar localStorage
+                    localStorage.removeItem('sensplay_active_patient_data'); // Limpiar localStorage
+
+                    Swal.fire({ title: 'Sesión finalizada con éxito', icon: 'success', timer: 2000, timerProgressBar: true, didOpen: () => Swal.showLoading() })
+                        .then(() => {
+                            resetUI(); // Resetear la UI
+                        });
+                } catch (error) {
+                    console.error("Error al detener sesión y actualizar Firebase:", error);
+                    Swal.fire({
+                        title: 'Error al detener sesión',
+                        text: 'Hubo un problema al comunicar el estado con Firebase. La sesión puede no haberse finalizado correctamente en el sistema externo.',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                    // Aunque hubo error con Firebase, la UI local se resetea para evitar estado inconsistente.
+                    resetUI();
+                }
+            }
+        });
+    });
+
+    // --- LÓGICA DE INICIALIZACIÓN AL CARGAR LA PÁGINA ---
+    // Esto verifica si una sesión estaba activa previamente (ej. por recarga o navegación de vuelta a la página)
+    const initPageSessionState = async () => {
+        const storedSessionActive = localStorage.getItem('sensplay_session_active');
+        const storedPatientData = localStorage.getItem('sensplay_active_patient_data');
+
+        if (storedSessionActive === 'true' && storedPatientData) {
+            try {
+                pacienteActual = JSON.parse(storedPatientData);
+                sesionOn = true;
+                
+                // Actualizar la UI para reflejar la sesión activa
+                dpN.textContent = `${pacienteActual.nombres} ${pacienteActual.apellidos}`;
+                dpE.textContent = pacienteActual.edad;
+                dpG.textContent = pacienteActual.genero;
+                dp.style.display = 'block';
+
+                input.disabled = true;
+                btnIni.style.display = 'none';
+                btnDet.style.display = 'inline-flex';
+                btnBuscar.style.display = 'none';
+                btnLimpiar.style.display = 'none';
+
+                tituloSesion.style.animation = 'slideUp 0.5s forwards';
+                setTimeout(() => {
+                    tituloSesion.style.display = 'none';
+                    labelBuscar.textContent = "Sesión iniciada";
+                    sessionIndicator.classList.add('show');
+                }, 500);
+
+                startCounter(); // Re-iniciar el contador
+                console.log("%cSesión reanudada desde localStorage.", 'color: blue;');
+
+                // Re-enviar el estado "activo" a Firebase al cargar, en caso de que se haya perdido el estado
+                // Esto es útil si el servidor Firebase se reinició o si la conexión se perdió brevemente antes.
+                // Sin showLoadingSwal para que no muestre la alerta al usuario al cargar.
+                await sendSessionStateToFirebase("activo", pacienteActual, false);
+                
+            } catch (e) {
+                console.error("Error al restaurar sesión desde localStorage:", e);
+                // Si hay un error al parsear o restaurar, limpiar todo y resetear.
+                resetUI();
+                await sendSessionStateToFirebase("inactivo", null, false); // Limpiar Firebase por si acaso
+            }
+        } else {
+            // Si no hay sesión activa en localStorage, asegurar que Firebase también esté en inactivo.
+            // Esto es una limpieza al cargar la página por si había un estado zombie.
+            await sendSessionStateToFirebase("inactivo", null, false);
+            console.log("%cPágina cargada. No hay sesión activa en localStorage. Firebase configurado a inactivo.", 'color: gray;');
+            resetUI(); // Asegurar que la UI esté limpia
+        }
+    };
+
+    // Llamar a la función de inicialización cuando el DOM esté completamente cargado
+    initPageSessionState();
+});
+</script>
+{% endblock %}

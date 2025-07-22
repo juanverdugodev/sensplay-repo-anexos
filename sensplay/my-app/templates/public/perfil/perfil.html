@@ -1,0 +1,185 @@
+{% extends 'public/base_cpanel.html' %}
+{% block title %}SENSPLAY 🖥️ | Perfil {% endblock %}
+{% block body_class %}no-bg-white{% endblock %}
+
+{% block customCSS %}
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+  }
+
+  body.no-bg-white .content,
+  body.no-bg-white .container,
+  body.no-bg-white .wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 100%;
+  }
+
+  .container-wrapper {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 20px;
+  }
+
+  .container-row {
+    width: 90%;
+    max-width: 700px;
+    background: white;
+    display: flex;
+    border-radius: 12px;
+    padding: 40px 30px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .form-content {
+    width: 100%;
+    max-width: 500px;
+  }
+
+  .form-label {
+    color: #1b2d51 !important;
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  input[name], select[name], .form-control, .form-select {
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 2px solid #498bc5;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    height: 36px;
+    color: #1b2d51 !important;
+    box-sizing: border-box;
+  }
+
+  .form-password-toggle .input-group-text.cursor-pointer {
+    cursor: pointer;
+    user-select: none;
+    min-width: 48px;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+  }
+
+  .form-password-toggle .input-group-text.cursor-pointer i {
+    pointer-events: none;
+  }
+
+  .text-center button {
+    width: 100%;
+    max-width: 220px;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-wrapper">
+  <div class="container-row">
+    <h3 class="text-center mb-4 d-flex justify-content-center align-items-center gap-2">
+      PERFIL
+      <i class="bi bi-person-circle"></i>
+    </h3>
+    <form class="form-horizontal form-content" method="POST" action="{{ url_for('actualizarPerfil', id=info_perfil_session[0]['id_usuario']) }}">
+      <div class="mb-3">
+        <label class="form-label">Cédula</label>
+        <input class="form-control" type="text" name="cedula" value="{{ info_perfil_session[0]['cedula'] }}" readonly />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <input type="text" name="name" value="{{ info_perfil_session[0]['nombre_usuario'] }}" class="form-control" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Apellido</label>
+        <input class="form-control" type="text" name="surname" value="{{ info_perfil_session[0]['apellido_usuario'] }}" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Área</label>
+        <select class="form-select" name="selectArea" {% if dataLogin.rol == 2 %} disabled {% endif %}>
+          {% for area in areas %}
+            <option value="{{ area.id_area }}" {% if area.id_area == info_perfil_session[0]['id_area'] %}selected{% endif %}>{{ area.nombre_area }}</option>
+          {% endfor %}
+        </select>
+        {% if dataLogin.rol != 1 %}
+        <input name="selectArea" value="{{ info_perfil_session[0]['id_area'] }}" hidden>
+        {% endif %}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Rol</label>
+        <select class="form-select" name="selectRol" {% if dataLogin.rol == 2 %} disabled {% endif %}>
+          {% for rol in roles %}
+            <option value="{{ rol.id_rol }}" {% if rol.id_rol == info_perfil_session[0]['id_rol'] %}selected{% endif %}>{{ rol.nombre_rol }}</option>
+          {% endfor %}
+        </select>
+        {% if dataLogin.rol != 1 %}
+        <input name="selectRol" value="{{ info_perfil_session[0]['id_rol'] }}" hidden>
+        {% endif %}
+      </div>
+
+      {% if dataLogin.rol == info_perfil_session[0]['id_rol'] %}
+      <div class="mb-3 form-password-toggle">
+        <label class="form-label">Clave Actual</label>
+        <div class="input-group">
+          <input type="password" class="form-control" name="pass_actual" id="pass_actual" placeholder="••••••••" />
+          <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="mb-3 form-password-toggle">
+        <label class="form-label">Nueva Clave</label>
+        <div class="input-group">
+          <input type="password" class="form-control" name="new_pass_user" id="new_pass_user" placeholder="••••••••" />
+          <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+        </div>
+      </div>
+
+      {% if dataLogin.rol == info_perfil_session[0]['id_rol'] %}
+      <div class="mb-3 form-password-toggle">
+        <label class="form-label">Repetir Nueva Clave</label>
+        <div class="input-group">
+          <input type="password" class="form-control" name="repetir_pass_user" id="repetir_pass_user" placeholder="••••••••" />
+          <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary rounded-pill">Actualizar mis datos</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.form-password-toggle .input-group-text.cursor-pointer').forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+      const input = toggle.parentElement.querySelector('input');
+      const icon = toggle.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('bx-hide');
+        icon.classList.add('bx-show');
+      } else {
+        input.type = 'password';
+        icon.classList.remove('bx-show');
+        icon.classList.add('bx-hide');
+      }
+    });
+  });
+</script>
+{% endblock %}

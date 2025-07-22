@@ -1,0 +1,376 @@
+/* --------------------
+   ESTILOS GENERALES
+---------------------*/
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: "Public Sans", sans-serif;
+  background: linear-gradient(135deg, #1c4b8d 20%, #498bc5 75%, #7fc0e6 100%);
+  color: #5b9ffe;
+}
+
+.font_size_17 {
+  font-size: 17px;
+}
+
+.mayuscula {
+  text-transform: uppercase !important;
+}
+
+tbody tr {
+  border-bottom: 1px solid #eee !important;
+}
+tbody tr:hover,
+.checkedTodos:hover {
+  cursor: pointer;
+}
+
+/* --------------------
+   INPUTS, TEXTAREAS Y SELECTS UNIFICADOS
+---------------------*/
+
+input.form-control,
+textarea.form-control,
+select.form-select,
+.form-field input,
+.form-field textarea,
+.form-field select {
+  background-color: #ffffffcc;
+  border: 2px solid #2081d6;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #222;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.4s ease;
+  animation: fadeInInput 0.4s ease-in-out;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Relleno de texto consistente */
+input.form-control,
+textarea.form-control,
+.form-field input,
+.form-field textarea,
+select.form-select,
+.form-field select {
+  -webkit-text-fill-color: #222 !important;
+  color: #222 !important;
+}
+
+/* Estado FOCUS uniforme */
+input.form-control:focus,
+textarea.form-control:focus,
+select.form-select:focus,
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  border-color: #2081d6;
+  background-color: #f3f9ff;
+  outline: none;
+  box-shadow: 0 0 12px rgba(127, 192, 230, 0.6);
+  transform: scale(1.01);
+}
+
+/* Selección de texto */
+input.form-control::selection,
+textarea.form-control::selection,
+.form-field input::selection,
+.form-field textarea::selection,
+select.form-select::selection,
+.form-field select::selection {
+  background-color: #2081d6;
+  color: #fff;
+}
+
+/* Validación visual */
+.input_lleno {
+  border-color: #2081d6 !important;
+  box-shadow: 0 0 8px rgba(127, 192, 230, 0.5) !important;
+}
+
+.input_vacio {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 6px rgba(220, 53, 69, 0.4);
+}
+
+/* Animación */
+@keyframes fadeInInput {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Input dentro de input-group (ej: cédula) y form-password-toggle */
+.input-group > input.form-control,
+.form-password-toggle .input-group > input.form-control {
+  /* Ya tienen borde y fondo, solo aseguramos transición */
+  transition: all 0.4s ease;
+}
+
+/* Efecto hover y focus igual que inputs normales */
+.input-group > input.form-control:hover,
+.input-group > input.form-control:focus,
+.form-password-toggle .input-group > input.form-control:hover,
+.form-password-toggle .input-group > input.form-control:focus {
+  border-color: #2081d6;
+  background-color: #f3f9ff;
+  outline: none;
+  box-shadow: 0 0 12px rgba(127, 192, 230, 0.6);
+  transform: scale(1.01);
+}
+
+/* Estilos originales que ya tienes para input-group */
+.input-group .input-group-text {
+  background-color: #2081d6;
+  border: 2px solid #2081d6;
+  color: #fff;
+  border-radius: 12px 0 0 12px;
+  padding: 10px 12px;
+}
+.input-group > .form-control {
+  border-radius: 0 12px 12px 0;
+  margin-left: -1px;
+}
+
+label.form-label,
+.custom-label {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 6px;
+  display: block;
+  transition: color 0.3s ease-in-out;
+}
+
+/* Input animado tipo password */
+.input-password-animated {
+  position: relative;
+  overflow: hidden;
+}
+.input-password-animated input[type="password"],
+.input-password-animated input[type="text"] {
+  border: none;
+  border-bottom: 2px solid #2081d6;
+  background-color: transparent;
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
+  color: #fff;
+}
+
+/* --------------------
+   BOTONES
+---------------------*/
+.btn-primary {
+  background-color: #498bc5 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+}
+.btn-primary:hover {
+  background-color: #7fc0e6 !important;
+  color: #1c4b8d !important;
+  transform: scale(1.03);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+.btn-close {
+  width: auto !important;
+  height: auto !important;
+}
+
+/* --------------------
+   MENU VERTICAL
+---------------------*/
+.menu-vertical,
+.menu-vertical .menu-block,
+.menu-vertical .menu-inner > .menu-item,
+.menu-vertical .menu-inner > .menu-header {
+  width: 17.25rem !important;
+}
+.menu-vertical .menu-inner > .menu-item .menu-link {
+  margin: 0 !important;
+}
+.menu-vertical .menu-item.active:not(.open) > .menu-link {
+  font-size: 14px !important;
+}
+.menu-vertical .app-brand {
+  padding-left: 15px !important;
+}
+
+/* --------------------
+   CARGADOR
+---------------------*/
+#loader-out,
+.loader {
+  background-color: #cecece;
+  opacity: 0.10;
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  z-index: 100000000;
+}
+#loader-container {
+  width: 150px;
+  height: 150px;
+  margin: auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 5px solid #cecece;
+  border-radius: 50%;
+  animation: borderScale 1s infinite ease-in-out;
+}
+#loading-text {
+  color: #222;
+  font-size: 1.5em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+@keyframes borderScale {
+  0% {
+    border: 5px solid white;
+  }
+  50% {
+    border: 25px solid #498bc5;
+  }
+  100% {
+    border: 5px solid white;
+  }
+}
+
+/* --------------------
+   ANIMACIONES
+---------------------*/
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeInInput {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------
+   OTROS ELEMENTOS
+---------------------*/
+.bi-check-all {
+  font-size: 20px;
+}
+.bi-arrow-left-circle:hover,
+.bi-x {
+  color: #222 !important;
+}
+.btnMovil {
+  display: flex;
+  justify-content: flex-end;
+  background-color:#d1f7ff2d;
+}
+.bx-menu {
+  background-color: #498bc5 !important;
+  color: #fff;
+  padding: 20px;
+  border-radius: 50%;
+}
+.alert-success {
+  background-color: #d1f7ff !important;
+  color: #000000 !important;
+}
+.colorTheadTrTh {
+  color: #fff !important;
+}
+.pesos {
+  background-color: #d1f7ff;
+  color: #000000;
+  padding: 2px;
+  border-radius: 10%;
+  margin-right: 10px;
+}
+.pagination {
+  justify-content: center;
+}
+.borderCheckbox {
+  cursor: pointer;
+  border-color: #498bc5;
+  box-shadow: 0 2px 4px 0 #d1f7ff;
+}
+.form-check-input {
+  width: 1.8em !important;
+  height: 1.9em !important;
+}
+.form-check-input[disabled] ~ .form-check-label {
+  opacity: initial !important;
+}
+#acceso {
+  line-height: 18px;
+}
+#informe_general:hover {
+  cursor: pointer;
+  border-bottom: dotted 1px #d1f7ff;
+}
+#search {
+  min-width: 44% !important;
+  background-color: #f3efef !important;
+}
+
+/* --------------------
+   MEDIA QUERIES
+---------------------*/
+@media (min-width: 1400px) {
+  .container-xxl,
+  .container-xl,
+  .container-lg,
+  .container-md,
+  .container-sm,
+  .container {
+    max-width: 95% !important;
+  }
+}
+
+/* --------------------
+   CORRECIÓN DE INPUT-AUTORELLENO
+---------------------*/
+input.form-control:-webkit-autofill,
+input.form-control:-webkit-autofill:hover,
+input.form-control:-webkit-autofill:focus,
+input.form-control:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffffcc inset !important;
+  -webkit-text-fill-color: #222 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+input:-moz-autofill {
+  background-color: #ffffffcc !important;
+  color: #222 !important;
+}

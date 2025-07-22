@@ -1,0 +1,247 @@
+{% extends 'public/base_cpanel.html' %}
+{% block title %}SENSPLAY 🖥️ | Lista de Áreas{% endblock %}
+
+{% block body %}
+<div class="container-wrapper">
+  <div class="container-row">
+    <div class="card" style="border-radius:0!important; max-width:850px; margin:auto;">
+      <div class="row justify-content-center mb-2">
+        <div class="col-md-12 mb-4">
+          <h3 class="text-center mt-5 mb-3">LISTA DE ÁREAS</h3>
+          <hr />
+        </div>
+
+        <!-- CREAR ÁREA -->
+        <div class="container" id="formCrear">
+          <form action="/crear-area" method="POST" onsubmit="return validarArea()">
+            <div class="contenedor">
+              <label class="form-label">Crear Área</label>
+              <div class="campo_clave">
+                <input
+                  type="text"
+                  name="nombre_area"
+                  id="nombreSeleccionado"
+                  class="form-control"
+                  placeholder="Nombre seleccionado"
+                />
+                <div class="botones mt-3 text-end">
+                  <button
+                    id="botonGuardarCrear"
+                    class="btn btn-personalizado btn-sm"
+                    type="submit"
+                    style="margin-right:10px; margin-top:-16px; font-size:16px; padding:6px 16px;"
+                  >
+                    Crear <i class="bi bi-person-lines-fill"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- ACTUALIZAR ÁREA -->
+        <div class="container" id="formActualizar" style="display:none;">
+          <form action="{{ url_for('updateArea') }}" method="POST" onsubmit="return validarActualizar()">
+            <div class="contenedor">
+              <label class="form-label">Actualizar Área</label>
+              <input
+                class="form-control"
+                name="nombre_area"
+                id="inputArea"
+                placeholder="Nombre de área"
+              />
+              <input name="id_area" hidden id="inputId"/>
+            </div>
+            <div class="mt-3 d-flex justify-content-start gap-3" style="margin-top:-10px;">
+              <button
+                id="botonGuardarActualizar"
+                class="btn btn-personalizado btn-sm"
+                type="submit"
+                style="font-size:16px; padding:6px 12px;"
+              >
+                Actualizar <i class="bi bi-pencil-square ms-2"></i>
+              </button>
+              <button
+                class="btn btn-outline-danger btn-sm"
+                onclick="ocultarForm()"
+                type="button"
+                style="font-size:16px; padding:6px 12px;"
+              >
+                Cancelar <i class="bi bi-x-lg ms-2"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TABLA -->
+        <div class="row justify-content-center mb-2">
+          <div class="table-responsive text-nowrap" style="overflow-x: auto;">
+            <table
+              id="tbl_areas"
+              class="table table-striped table-bordered"
+              cellspacing="0"
+              width="100%"
+            >
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for area in areas %}
+                <tr id="{{ area.id_area }}">
+                  <td>{{ area.id_area }}</td>
+                  <td>{{ area.nombre_area }}</td>
+                  <td>
+                    <a
+                      onclick="editar('{{area.nombre_area}}','{{area.id_area}}')"
+                      class="btn btn-personalizado btn-sm"
+                      tooltip="Actualizar Registro"
+                      style="margin-left:8px; margin-top:-2px; font-size:16px; padding:6px 8px;"
+                    >
+                      <i class="bi bi-arrow-clockwise"></i> Actualizar
+                    </a>
+                    <a
+                      href="{{ url_for('borrarArea', id_area=area.id_area) }}"
+                      class="btn btn-danger btn-sm"
+                      style="margin-left:15px; margin-top:-2px; font-size:16px; padding:6px 8px;"
+                    >
+                      <i class="bi bi-trash3"></i> Eliminar
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block customJS %}
+<script>
+  function ocultarForm() {
+    document.getElementById('formActualizar').style.display = 'none';
+    document.getElementById('formCrear').style.display = 'block';
+  }
+  function editar(nombre, id) {
+    document.getElementById('formCrear').style.display = 'none';
+    document.getElementById('formActualizar').style.display = 'block';
+    document.getElementById('inputArea').value = nombre;
+    document.getElementById('inputId').value = id;
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    ['nombreSeleccionado', 'inputArea'].forEach(id => {
+      document.getElementById(id).addEventListener('input', function () {
+        this.setCustomValidity('');
+      });
+    });
+  });
+  function validarCampo(el) {
+    const orig = el.value,
+      val = orig.trim(),
+      re = /^[A-Za-zÁÉÍÓÚÑáéíóúñ]+( [A-Za-zÁÉÍÓÚÑáéíóúñ]+)*$/;
+    el.setCustomValidity('');
+    if (!val) el.setCustomValidity('Completar el campo.');
+    else if (orig !== val) el.setCustomValidity('No espacios al inicio o final.');
+    else if (!re.test(val)) el.setCustomValidity('Sólo letras y espacios intermedios.');
+    if (el.validationMessage) {
+      el.reportValidity();
+      return false;
+    }
+    el.value = val;
+    return true;
+  }
+  function validarArea() { return validarCampo(document.getElementById('nombreSeleccionado')); }
+  function validarActualizar() { return validarCampo(document.getElementById('inputArea')); }
+</script>
+{% endblock %}
+
+{% block customCSS %}
+<style>
+  table.table th,
+  table.table td {
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #ffffff;
+  }
+
+  table.table thead th {
+    background-color: #498bc5 !important;
+    color: #ffffff !important;
+  }
+
+  table.table tbody tr:nth-child(odd) {
+    background-color: rgba(28, 75, 141, 0.1);
+  }
+
+  table.table tbody tr:nth-child(even) {
+    background-color: rgba(28, 75, 141, 0.05);
+  }
+
+  table.table {
+    border-collapse: collapse;
+    min-width: 600px;
+  }
+
+  .btn-personalizado {
+    background-color: #498bc5 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 5px;
+    padding: 2.45px 4px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease-in-out,
+                background-color 0.3s ease-in-out,
+                box-shadow 0.3s ease-in-out,
+                color 0.3s ease-in-out;
+  }
+
+  .btn-personalizado:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    background-color: #7fc0e6 !important;
+    color: #1c4b8d !important;
+  }
+
+  .btn-personalizado i {
+    margin-left: 3px;
+    font-size: 1rem;
+  }
+
+  table.table tbody tr {
+    position: relative;
+    z-index: 0;
+  }
+
+  table.table tbody tr:hover {
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+    transition: box-shadow 0.2s ease-in-out;
+  }
+
+  table.table tbody td:last-child {
+    overflow: visible !important;
+    position: relative;
+    z-index: 2;
+  }
+
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
+{% endblock %}

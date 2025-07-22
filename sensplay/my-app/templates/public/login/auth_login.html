@@ -1,0 +1,106 @@
+<div class="container-xxl">
+  <div class="authentication-wrapper authentication-basic container-p-y d-flex align-items-center justify-content-center min-vh-100">
+    <div class="authentication-inner w-100" style="max-width: 420px;">
+      <div class="card panel-transparente shadow-lg rounded-4">
+        <div class="card-body">
+
+          <!-- Logo centrado -->
+          <div class="app-brand justify-content-center mb-4 d-flex">
+            <span class="app-brand-logo">
+              <img
+                class="logo img-fluid"
+                src="{{ url_for('static', filename='assets/img/logo.png') }}"
+                alt="Logo"
+              />
+            </span>
+          </div>
+
+          <!-- Formulario de autenticación -->
+          <form
+            id="formAuthentication"
+            class="mb-3"
+            action="{{ url_for('loginCliente') }}"
+            method="POST"
+          >
+            <!-- Cédula -->
+            <div class="mb-3">
+              <label for="cedula" class="form-label text-white">Cédula</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-person-vcard"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="cedula"
+                  name="cedula"
+                  placeholder="Escribe tu cédula"
+                  autofocus
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Clave -->
+            <div class="mb-3 form-password-toggle">
+              <label for="pass_user" class="form-label text-white">Clave</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-lock-fill"></i>
+                </span>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="pass_user"
+                  name="pass_user"
+                  placeholder="Contraseña"
+                  required
+                />
+                <span class="input-group-text cursor-pointer" id="togglePassword">
+                  <i class="bx bx-hide" id="toggleIcon"></i>
+                </span>
+              </div>
+            </div>
+
+            <!-- Botón -->
+            <div class="mb-3">
+              <button type="submit" class="btn btn-primary w-100">
+                Entrar ahora <i class="bi bi-arrow-right-circle ms-1"></i>
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script para alternar visibilidad de la contraseña -->
+<script>
+  const togglePassword = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('pass_user');
+  const toggleIcon = document.getElementById('toggleIcon');
+
+  togglePassword.addEventListener('click', function () {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+
+    // Cambia el ícono
+    if (type === 'text') {
+      toggleIcon.classList.remove('bx-hide');
+      toggleIcon.classList.add('bx-show');
+    } else {
+      toggleIcon.classList.remove('bx-show');
+      toggleIcon.classList.add('bx-hide');
+    }
+  });
+</script>
+
+<script>
+  document.getElementById("cedula").addEventListener("paste", function (e) {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    document.execCommand("insertText", false, text);
+  });
+</script>

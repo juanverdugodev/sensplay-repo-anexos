@@ -1,0 +1,251 @@
+{% extends 'public/base_cpanel.html' %}
+{% block title %}SENSPLAY 🖥️ | Crear cuenta{% endblock %}
+{% block body %}
+
+<div class="black-text-theme">
+  <div class="container d-flex justify-content-center align-items-center" style="min-height: 90vh;">
+    <div class="card bloque-transparente shadow-lg" style="width: 100%; max-width: 600px;">
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <h3 class="mt-3 mb-1">REGISTRAR USUARIO</h3>
+          <hr />
+        </div>
+
+        <form
+          id="formUsuario"
+          class="mb-3"
+          action="{{ url_for('cpanelRegisterUser') }}"
+          method="POST"
+          novalidate
+          onsubmit="return validarFormularioUsuario();"
+        >
+          <div class="mb-3">
+            <label for="cedula" class="form-label">Cédula</label>
+            <input type="text" class="form-control" name="cedula" id="cedula" pattern="^\d{10}$"
+              inputmode="numeric" maxlength="10" minlength="10" required
+              placeholder="Ingresar número de cédula (10 dígitos)" autofocus />
+          </div>
+
+          <div class="row">
+            <div class="mb-3 col-md-6">
+              <label for="name" class="form-label">Nombre</label>
+              <input type="text" class="form-control" name="name" id="name"
+                pattern="^(?! )[A-Za-zÁÉÍÓÚÑáéíóúñ]+( [A-Za-zÁÉÍÓÚÑáéíóúñ]+)*$"
+                required placeholder="Ingresar nombres" />
+            </div>
+            <div class="mb-3 col-md-6">
+              <label for="surname" class="form-label">Apellido</label>
+              <input type="text" class="form-control" name="surname" id="surname"
+                pattern="^(?! )[A-Za-zÁÉÍÓÚÑáéíóúñ]+( [A-Za-zÁÉÍÓÚÑáéíóúñ]+)*$"
+                required placeholder="Ingresar apellidos" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="mb-3 col-md-6">
+              <label for="id_genero" class="form-label fw-bold">Género</label>
+              <select name="id_genero" id="id_genero" class="form-select" required>
+                <option value="" disabled selected hidden>-- Seleccionar --</option>
+                {% for genero in generos %}
+                <option value="{{ genero.id_genero }}">{{ genero.tipo_genero }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3 col-md-6">
+              <label for="id_estado_civil" class="form-label fw-bold">Estado Civil</label>
+              <select name="id_estado_civil" id="id_estado_civil" class="form-select" required>
+                <option value="" disabled selected hidden>-- Seleccionar --</option>
+                {% for estado in estados_civiles %}
+                <option value="{{ estado.id_estado_civil }}">{{ estado.registro_civil }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="mb-3 col-md-6">
+              <label for="selectArea" class="form-label">Área</label>
+              <select class="form-select" name="selectArea" {% if dataLogin.rol == 2 %} disabled {% endif %}>
+                {% for area in areas %}
+                <option value="{{ area.id_area }}">{{ area.nombre_area }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3 col-md-6">
+              <label for="selectRol" class="form-label">Rol</label>
+              <select class="form-select" name="selectRol" {% if dataLogin.rol == 2 %} disabled {% endif %}>
+                {% for rol in roles %}
+                <option value="{{ rol.id_rol }}">{{ rol.nombre_rol }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3 form-password-toggle">
+            <label class="form-label" for="pass_user">Clave</label>
+            <div class="input-group input-group-merge">
+              <input type="password" class="form-control" name="pass_user" id="pass_user"
+                placeholder="••••••••" required />
+              <span class="input-group-text cursor-pointer" id="togglePassword" style="user-select: none;">
+                <i class="bx bx-hide" id="iconTogglePass"></i>
+              </span>
+            </div>
+          </div>
+
+          <button id="btnGuardarUsuario" class="btn btn-primary w-100">
+            Crear cuenta <i class="bi bi-arrow-right-circle"></i>
+          </button>
+        </form>
+
+        <div class="text-center mt-2">
+          <a href="{{ url_for('usuarios') }}" class="d-flex align-items-center justify-content-center">
+            <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm"></i> Volver
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function limpiarTexto(valor) {
+  return valor.trim().replace(/\s{2,}/g, ' ');
+}
+
+function validarFormularioUsuario() {
+  const form = document.getElementById('formUsuario');
+  form.cedula.value = form.cedula.value.trim();
+  form.name.value = limpiarTexto(form.name.value);
+  form.surname.value = limpiarTexto(form.surname.value);
+
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return false;
+  }
+
+  const loader = document.getElementById('loader-out');
+  if (loader) loader.style.display = 'flex';
+
+  return true;
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const togglePassword = document.getElementById("togglePassword");
+  const passwordInput = document.getElementById("pass_user");
+  const icon = document.getElementById("iconTogglePass");
+
+  togglePassword.addEventListener("click", () => {
+    const type = passwordInput.type === "password" ? "text" : "password";
+    passwordInput.type = type;
+    icon.classList.toggle("bx-hide");
+    icon.classList.toggle("bx-show");
+  });
+
+  const form = document.getElementById("formUsuario");
+  const btnGuardar = document.getElementById("btnGuardarUsuario");
+  let formularioModificado = false;
+
+  if (form) {
+    form.querySelectorAll("input, select, textarea").forEach((input) => {
+      input.addEventListener("input", () => {
+        formularioModificado = true;
+      });
+    });
+
+    form.addEventListener("submit", () => {
+      formularioModificado = false;
+    });
+  }
+
+  if (form && btnGuardar) {
+    form.addEventListener("submit", (e) => {
+      if (!form.checkValidity()) {
+        return;
+      }
+      mostrarPreloader();
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const estado = urlParams.get('estado');
+    const mensaje = urlParams.get('mensaje');
+
+    if (estado && mensaje) {
+      setTimeout(() => {
+        Swal.fire({
+          icon: estado === 'ok' ? 'success' : 'error',
+          title: estado === 'ok' ? 'Usuario registrado correctamente' : 'Error al registrar usuario',
+          text: decodeURIComponent(mensaje),
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: () => {
+            if (estado === 'ok') form.reset();
+          }
+        });
+
+        const loader = document.getElementById('preloader');
+        if (loader) loader.remove();
+      }, 500);
+    }
+  }
+
+  window.addEventListener("beforeunload", (e) => {
+    if (formularioModificado) {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }
+  });
+
+  function mostrarPreloader() {
+    const loader = document.createElement("div");
+    loader.id = "preloader";
+    loader.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      ">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(loader);
+  }
+
+  // Validar cédula ecuatoriana (solo 01 a 24 y longitud 10)
+  const cedulaInput = document.getElementById("cedula");
+  if (cedulaInput) {
+    cedulaInput.addEventListener("input", () => {
+      cedulaInput.value = cedulaInput.value.replace(/[^0-9]/g, '').slice(0, 10);
+    });
+
+    cedulaInput.addEventListener("change", () => {
+      const cedula = cedulaInput.value;
+      if (!/^\d{10}$/.test(cedula)) {
+        cedulaInput.setCustomValidity("La cédula debe tener exactamente 10 dígitos numéricos.");
+        return;
+      }
+
+      const provincia = parseInt(cedula.substring(0, 2), 10);
+      if (provincia < 1 || provincia > 24) {
+        cedulaInput.setCustomValidity("Los dos primeros dígitos deben estar entre 01 y 24.");
+        return;
+      }
+
+      cedulaInput.setCustomValidity("");
+    });
+  }
+});
+</script>
+
+{% endblock %}

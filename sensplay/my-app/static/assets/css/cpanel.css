@@ -1,0 +1,225 @@
+/* Títulos con animación de entrada */
+:is(h1, h2, h3, h4, h5, h6) {
+  color: #1b2d51;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.234);
+  animation: fadeInLeft 0.6s ease-out;
+}
+
+/* Botón personalizado con colores igual a btn-primary, tamaño btn-sm y animación sutil */
+.btn-personalizado {
+  background-color: #498bc5 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 5px;
+  padding: 2.45px 4px;
+  margin-top: 1.5px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s ease-in-out,
+    background-color 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out,
+    color 0.3s ease-in-out;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Al pasar el cursor, solo se eleva hacia arriba */
+.btn-personalizado:hover {
+  transform: translateY(-1px); /* sube suavemente */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  background-color: #7fc0e6 !important;
+  color: #1c4b8d !important;
+}
+
+.btn-personalizado i {
+  margin-left: 3px;
+  font-size: 1rem;
+}
+
+
+/* Animación de aparición: pequeño "subir" con opacidad */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover / foco: elevación y escala */
+.btn-personalizado:hover,
+.btn-personalizado:focus {
+  background-color: #7fc0e6 !important;
+  color: #1c4b8d !important;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  outline: none;
+}
+
+/* Efecto cuando el botón está presionado (activo) */
+.btn-personalizado:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Tamaño btn-close si lo usas */
+.btn-close {
+  width: auto !important;
+  height: auto !important;
+}
+
+
+/* Animación de entrada */
+@keyframes fadeInLeft {
+  0% {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+  @keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  }
+
+  .container-row {
+  animation: slideInFromLeft 0.8s ease-out;
+  }
+
+
+/* Texto negro para temas oscuros */
+.black-text-theme :is(label, input, select, option, span, p, a, td, th, li, h1, h2, h3, h4, h5, h6) {
+  color: #000;
+  text-shadow: none;
+}
+
+/* Variante con fondo blanco */
+.bloque-blanco {
+  background: #ffffff;
+  color: #000;
+}
+
+.bloque-blanco :is(td, th, label, input, span, a, p, li, select, option) {
+  color: #000;
+  text-shadow: none;
+}
+
+.bloque-blanco thead tr {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bloque-blanco tbody tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.bloque-blanco input,
+.bloque-blanco select,
+.bloque-blanco textarea {
+  background-color: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #000;
+}
+
+/* Gráficas */
+canvas {
+  background-color: #ffffff !important;
+  border-radius: 8px;
+}
+
+/* Estilo unificado para campos select y form-field */
+.form-select,
+.form-field select,
+.form-field input,
+.form-field textarea {
+  display: block;
+  width: 100%;
+  height: 34px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #555;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+
+/* Efecto foco (focus) */
+.form-select:focus,
+.form-field select:focus,
+.form-field input:focus,
+.form-field textarea:focus {
+  border-color: #66afe9;
+  outline: 0;
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.075),
+    0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+/* Placeholder */
+.form-field input::placeholder,
+.form-field textarea::placeholder,
+.form-select::placeholder {
+  color: #999;
+  opacity: 1;
+}
+
+/* Compatibilidad para IE/Edge */
+.form-control::-ms-expand,
+.form-select::-ms-expand {
+  background-color: transparent;
+  border: 0;
+}
+
+/* Disabled/Read-only */
+.form-select[disabled],
+.form-field input[disabled],
+.form-field textarea[disabled],
+.form-field input[readonly],
+.form-field textarea[readonly],
+fieldset[disabled] .form-select,
+fieldset[disabled] .form-field input,
+fieldset[disabled] .form-field textarea {
+  background-color: #eee;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* Ajuste para textareas */
+.form-field textarea {
+  height: auto;
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Compatibilidad con date/time en algunos navegadores */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"] {
+    line-height: 34px;
+  }
+}
